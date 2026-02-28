@@ -8,13 +8,17 @@ const statusConfig: Record<
   TaskStatus,
   { label: string; className: string }
 > = {
-  pending: {
-    label: "等待中",
-    className: "bg-amber-50 text-amber-700 border-amber-200"
+  ready: {
+    label: "准备中",
+    className: "bg-slate-50 text-slate-700 border-slate-200"
   },
-  executing: {
-    label: "下载中",
+  consuming: {
+    label: "执行中",
     className: "bg-blue-50 text-blue-700 border-blue-200"
+  },
+  downloading: {
+    label: "下载中",
+    className: "bg-indigo-50 text-indigo-700 border-indigo-200"
   },
   completed: {
     label: "已完成",

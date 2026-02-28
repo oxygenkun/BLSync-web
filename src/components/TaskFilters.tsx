@@ -4,8 +4,9 @@ interface TaskFiltersProps {
   filter: TaskQuery;
   onChange: (filter: TaskQuery) => void;
   stats?: {
-    pending: number;
-    executing: number;
+    ready: number;
+    consuming: number;
+    downloading: number;
     completed: number;
     failed: number;
   };
@@ -13,10 +14,11 @@ interface TaskFiltersProps {
 
 const statusFilters: Array<{ value: TaskStatus | "all"; label: string }> = [
   { value: "all", label: "全部" },
-  { value: "pending", label: "等待中" },
-  { value: "executing", label: "下载中" },
+  { value: "ready", label: "准备中" },
+  { value: "consuming", label: "执行中" },
+  { value: "downloading", label: "下载中" },
   { value: "completed", label: "已完成" },
-  { value: "failed", label: "失败" },
+  { value: "failed", label: "已失败" },
 ];
 
 export function TaskFilters({ filter, onChange, stats }: TaskFiltersProps) {

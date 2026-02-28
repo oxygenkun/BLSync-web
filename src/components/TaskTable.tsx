@@ -110,8 +110,9 @@ export function TaskTable({ tasks, isLoading, onStatusChange }: TaskTableProps) 
                       disabled={updatingTaskId === task.id}
                       className="h-8 px-2 text-sm bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium text-slate-700 hover:border-slate-300 cursor-pointer py-1"
                     >
-                      <option value="pending">待处理</option>
-                      <option value="executing">执行中</option>
+                      <option value="ready">准备中</option>
+                      <option value="consuming">执行中</option>
+                      <option value="downloading">下载中</option>
                       <option value="completed">已完成</option>
                       <option value="failed">失败</option>
                     </select>

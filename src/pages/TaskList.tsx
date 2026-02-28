@@ -14,7 +14,7 @@ export function TaskList() {
     const params = new URLSearchParams(location.search);
     const page = parseInt(params.get("page") || "1", 10);
     const statusParam = params.get("status");
-    const status = (statusParam === "pending" || statusParam === "executing" || statusParam === "completed" || statusParam === "failed")
+    const status = (statusParam === "ready" || statusParam === "consuming" || statusParam === "downloading" || statusParam === "completed" || statusParam === "failed")
       ? statusParam
       : undefined;
     return { page, page_size: 20, status };
