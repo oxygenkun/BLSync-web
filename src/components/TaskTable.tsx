@@ -1,14 +1,20 @@
 import { useState } from "react";
-import type { Task } from "../types/task";
+import type { Task, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
 interface TaskTableProps {
   tasks: Task[];
+  progressByTaskId?: Record<number, TaskProgressEvent>;
   isLoading?: boolean;
   onStatusChange?: (taskId: number, newStatus: string, errorMessage?: string) => Promise<void>;
 }
 
-export function TaskTable({ tasks, isLoading, onStatusChange }: TaskTableProps) {
+export function TaskTable({
+  tasks,
+  progressByTaskId = {},
+  isLoading,
+  onStatusChange,
+}: TaskTableProps) {
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
 
   const handleStatusChange = async (taskId: number, newStatus: string) => {
@@ -71,6 +77,9 @@ export function TaskTable({ tasks, isLoading, onStatusChange }: TaskTableProps) 
                 状态
               </th>
               <th className="h-10 px-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                执行进度
+              </th>
+              <th className="h-10 px-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">
                 操作
               </th>
               <th className="h-10 px-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wide">
@@ -102,6 +111,12 @@ export function TaskTable({ tasks, isLoading, onStatusChange }: TaskTableProps) 
                 <td className="px-4 whitespace-nowrap">
                   <TaskStatusBadge status={task.status} />
                 </td>
+                <td className="px-4 min-w-[240px]">
+                  <TaskProgressCell
+                    task={task}
+                    progress={progressByTaskId[task.id]}
+                  />
+                </td>
                 <td className="px-4 whitespace-nowrap">
                   {onStatusChange ? (
                     <select
@@ -129,6 +144,56 @@ export function TaskTable({ tasks, isLoading, onStatusChange }: TaskTableProps) 
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function TaskProgressCell({
+  task,
+  progress,
+}: {
+  task: Task;
+  progress?: TaskProgressEvent;
+}) {
+  if (!progress || task.status === "ready") {
+    return <span className="text-sm text-slate-400">-</span>;
+  }
+
+  if (progress.event === "failed") {
+    return <span className="text-sm text-rose-600">{progress.message || "失败"}</span>;
+  }
+
+  if (progress.event === "completed") {
+    return <span className="text-sm font-medium text-emerald-600">100%</span>;
+  }
+
+  const overallPercent = progress.overall_percent ?? 0;
+  const episodeLabel =
+    progress.episode_index && progress.episode_count
+      ? `P${progress.episode_index}/${progress.episode_count}`
+      : null;
+
+  return (
+    <div className="flex min-w-[220px] flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-600">
+        <span className="truncate">
+          {episodeLabel || progress.status}
+          {progress.episode_percent !== null ? ` ${progress.episode_percent.toFixed(1)}%` : ""}
+        </span>
+        <span className="font-medium tabular-nums text-slate-800">
+          {overallPercent.toFixed(1)}%
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-200">
+        <div
+          className="h-full rounded-full bg-blue-500 transition-[width] duration-300"
+          style={{ width: `${Math.min(Math.max(overallPercent, 0), 100)}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between gap-3 text-[11px] text-slate-500">
+        <span>{formatBytes(progress.downloaded_bytes)} / {formatBytes(progress.total_bytes)}</span>
+        <span>{formatSpeed(progress.speed_bytes_per_second)}</span>
       </div>
     </div>
   );
@@ -174,4 +239,21 @@ function formatDate(dateString: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatBytes(value: number | null): string {
+  if (value === null) return "-";
+  const units = ["B", "KB", "MB", "GB"];
+  let amount = value;
+  let unitIndex = 0;
+  while (amount >= 1024 && unitIndex < units.length - 1) {
+    amount /= 1024;
+    unitIndex += 1;
+  }
+  return `${amount.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+}
+
+function formatSpeed(value: number | null): string {
+  if (value === null) return "-";
+  return `${formatBytes(value)}/s`;
 }

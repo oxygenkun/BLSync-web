@@ -9,7 +9,6 @@ export function useTasks(query: TaskQuery = {}) {
   return useQuery({
     queryKey: ["tasks", query],
     queryFn: () => getTasks(query),
-    refetchInterval: 5000, // 自动刷新（5秒）
   });
 }
 
@@ -20,7 +19,6 @@ export function useTaskStats() {
   return useQuery({
     queryKey: ["taskStats"],
     queryFn: getTaskStats,
-    refetchInterval: 5000,
   });
 }
 

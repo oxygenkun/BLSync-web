@@ -41,8 +41,9 @@ export interface CreateTaskRequest {
 
 // 创建任务响应
 export interface CreateTaskResponse {
-  status: "success" | "already_queued" | "already_downloaded";
+  status: "success" | "updated" | "already_queued" | "already_downloaded";
   message: string;
+  task_id: number;
 }
 
 // 任务统计
@@ -52,4 +53,22 @@ export interface TaskStats {
   downloading: number;
   completed: number;
   failed: number;
+}
+
+export type TaskProgressEventType = "status" | "progress" | "completed" | "failed";
+
+export interface TaskProgressEvent {
+  event: TaskProgressEventType;
+  task_id: number | null;
+  bvid: string;
+  status: string;
+  overall_percent: number | null;
+  episode_index: number | null;
+  episode_count: number | null;
+  episode_name: string | null;
+  episode_percent: number | null;
+  downloaded_bytes: number | null;
+  total_bytes: number | null;
+  speed_bytes_per_second: number | null;
+  message: string | null;
 }

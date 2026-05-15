@@ -29,7 +29,12 @@ export const useTaskStore = create<TaskStore>((set) => ({
   // Actions
   setUrl: (url) => set({ url, error: null }),
 
-  setVideoInfo: (info) => set({ videoInfo: info }),
+  setVideoInfo: (info) =>
+    set((state) => ({
+      videoInfo: info,
+      selectedEpisodes:
+        state.videoInfo?.bvid === info?.bvid ? state.selectedEpisodes : [],
+    })),
 
   setSelectedEpisodes: (episodes) => set({ selectedEpisodes: episodes }),
 

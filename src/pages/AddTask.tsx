@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTaskStore } from "../store/taskStore";
 import { useVideoInfo } from "../hooks/useVideoInfo";
@@ -15,10 +16,10 @@ export function AddTask() {
   const { data: videoInfo, isLoading } = useVideoInfo(bvid || "");
   const createTaskMutation = useCreateTask();
 
-  // 更新 store 中的视频信息
-  if (videoInfo && videoInfo.bvid !== bvid) {
-    setVideoInfo(videoInfo);
-  }
+  // Keep selection state aligned with the currently parsed video.
+  useEffect(() => {
+    setVideoInfo(videoInfo ?? null);
+  }, [videoInfo, setVideoInfo]);
 
   const handleSubmit = async () => {
     if (!bvid || !isValidBvid(bvid)) {

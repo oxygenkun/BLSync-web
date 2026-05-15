@@ -4,6 +4,8 @@ import { useTasks, useTaskStats, useUpdateTaskStatus } from "../hooks/useTasks";
 import { TaskFilters } from "../components/TaskFilters";
 import { TaskTable } from "../components/TaskTable";
 import type { TaskQuery } from "../types/task";
+import { useTaskProgress } from "../hooks/useTaskProgress";
+import { useTaskEvents } from "../hooks/useTaskEvents";
 
 export function TaskList() {
   const navigate = useNavigate();
@@ -25,6 +27,8 @@ export function TaskList() {
   const { data, isLoading } = useTasks(filter);
   const { data: stats } = useTaskStats();
   const updateTaskStatus = useUpdateTaskStatus();
+  useTaskEvents();
+  const taskProgress = useTaskProgress(data?.items || []);
 
   const currentPage = filter.page || 1;
   const totalPages = data ? Math.ceil(data.total / (filter.page_size || 20)) : 0;
@@ -36,7 +40,7 @@ export function TaskList() {
     if (filter.status) params.set("status", filter.status);
     const queryString = params.toString();
     navigate(`/?${queryString}`, { replace: true });
-  }, [filter]);
+  }, [filter, navigate]);
 
   const handlePageChange = (newPage: number) => {
     setFilter({ ...filter, page: newPage });
@@ -95,6 +99,7 @@ export function TaskList() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <TaskTable
             tasks={data?.items || []}
+            progressByTaskId={taskProgress}
             isLoading={isLoading}
             onStatusChange={async (taskId, status, errorMessage) => {
               await updateTaskStatus.mutateAsync({ taskId, status, errorMessage });
