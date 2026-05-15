@@ -30,6 +30,13 @@ export async function getTaskStats(): Promise<TaskStats> {
 }
 
 /**
+ * 立即扫描收藏夹
+ */
+export async function scanTasks(): Promise<{ created: number; reset: number; skipped: number }> {
+  return apiClient.post("/tasks/scan");
+}
+
+/**
  * 更新任务状态
  */
 export async function updateTaskStatus(

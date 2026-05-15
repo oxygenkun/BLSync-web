@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useTasks, useTaskStats, useUpdateTaskStatus } from "../hooks/useTasks";
+import { useScanTasks, useTasks, useTaskStats, useUpdateTaskStatus } from "../hooks/useTasks";
 import { TaskFilters } from "../components/TaskFilters";
 import { TaskTable } from "../components/TaskTable";
 import type { TaskQuery } from "../types/task";
@@ -27,6 +27,7 @@ export function TaskList() {
   const { data, isLoading } = useTasks(filter);
   const { data: stats } = useTaskStats();
   const updateTaskStatus = useUpdateTaskStatus();
+  const scanTasks = useScanTasks();
   useTaskEvents();
   const taskProgress = useTaskProgress(data?.items || []);
 
@@ -65,32 +66,42 @@ export function TaskList() {
             <TaskFilters filter={filter} onChange={handleStatusChange} stats={stats} />
           </div>
 
-          {/* 分页 */}
-          {data && data.total > 0 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-                className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
-              >
-                上一页
-              </button>
+          <div className="flex min-h-10 items-center">
+            <button
+              onClick={() => scanTasks.mutate()}
+              disabled={scanTasks.isPending}
+              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+            >
+              {scanTasks.isPending ? "扫描中..." : "Scan"}
+            </button>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg">
-                <span className="text-sm font-medium text-slate-900">{currentPage}</span>
-                <span className="text-sm text-slate-400">/</span>
-                <span className="text-sm text-slate-600">{totalPages}</span>
+            {/* 分页 */}
+            {data && data.total > 0 && (
+              <div className="flex flex-1 items-center justify-center gap-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+                >
+                  上一页
+                </button>
+
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg">
+                  <span className="text-sm font-medium text-slate-900">{currentPage}</span>
+                  <span className="text-sm text-slate-400">/</span>
+                  <span className="text-sm text-slate-600">{totalPages}</span>
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+                >
+                  下一页
+                </button>
               </div>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
-              >
-                下一页
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTask, getTaskStats, getTasks, updateTaskStatus } from "../api/tasks";
+import { createTask, getTaskStats, getTasks, scanTasks, updateTaskStatus } from "../api/tasks";
 import type { CreateTaskRequest, TaskQuery } from "../types/task";
 
 /**
@@ -52,6 +52,21 @@ export function useUpdateTaskStatus() {
     }) => updateTaskStatus(taskId, status, errorMessage),
     onSuccess: () => {
       // 刷新任务列表和统计
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+}
+
+/**
+ * 立即扫描收藏夹
+ */
+export function useScanTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: scanTasks,
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["taskStats"] });
     },
