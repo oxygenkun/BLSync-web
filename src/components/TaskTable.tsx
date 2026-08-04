@@ -168,6 +168,14 @@ function TaskProgressCell({
     return <span className="text-sm font-medium text-emerald-600">100%</span>;
   }
 
+  if (progress.status === "postprocessing") {
+    return (
+      <span className="text-sm font-medium text-amber-600">
+        100% · 合并/后处理中
+      </span>
+    );
+  }
+
   const overallPercent = progress.overall_percent ?? 0;
   const episodeLabel =
     progress.episode_index && progress.episode_count

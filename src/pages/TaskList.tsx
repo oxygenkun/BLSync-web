@@ -5,7 +5,6 @@ import { TaskFilters } from "../components/TaskFilters";
 import { TaskTable } from "../components/TaskTable";
 import type { TaskQuery } from "../types/task";
 import { useTaskProgress } from "../hooks/useTaskProgress";
-import { useTaskEvents } from "../hooks/useTaskEvents";
 
 export function TaskList() {
   const navigate = useNavigate();
@@ -28,7 +27,6 @@ export function TaskList() {
   const { data: stats } = useTaskStats();
   const updateTaskStatus = useUpdateTaskStatus();
   const scanTasks = useScanTasks();
-  useTaskEvents();
   const taskProgress = useTaskProgress(data?.items || []);
 
   const currentPage = filter.page || 1;
