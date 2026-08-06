@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link2, X } from "lucide-react";
 
 interface URLInputProps {
   value: string;
@@ -9,39 +10,43 @@ interface URLInputProps {
 export function URLInput({
   value,
   onChange,
-  placeholder = "粘贴 Bilibili 视频链接..."
+  placeholder = "粘贴 Bilibili 视频链接，例如 https://b23.tv/… 或 BV 号"
 }: URLInputProps) {
   const [focused, setFocused] = useState(false);
 
   return (
-    <div className="relative group">
-      <div className={`absolute -inset-0.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300 ${focused ? "opacity-30" : ""}`} />
-      <div className="relative flex items-center">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder={placeholder}
-          className={`w-full px-4 py-3.5 bg-white border rounded-xl outline-none transition-all duration-200 placeholder:text-slate-400 text-slate-700 ${
-            focused
-              ? "border-blue-500 ring-4 ring-blue-500/10 shadow-lg shadow-blue-500/10"
-              : "border-slate-200 hover:border-slate-300"
-          }`}
-        />
-        {value && (
-          <button
-            onClick={() => onChange("")}
-            className="absolute right-3 p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-150"
-            aria-label="清除输入"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-      </div>
+    <div
+      className={`flex items-center gap-3 px-4 py-3.5 bg-surface border rounded-2xl transition-all duration-200 ${
+        focused
+          ? "border-accent ring-4 ring-accent/15"
+          : "border-stone-200/80 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600"
+      }`}
+      style={{ boxShadow: "0 1px 2px rgb(28 25 23 / 0.04)" }}
+    >
+      <Link2
+        className={`w-4.5 h-4.5 shrink-0 transition-colors duration-200 ${
+          focused ? "text-accent-deep" : "text-stone-400 dark:text-stone-500"
+        }`}
+        strokeWidth={1.8}
+      />
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder={placeholder}
+        className="w-full bg-transparent outline-none placeholder:text-stone-400 dark:placeholder:text-stone-500 text-ink text-[15px]"
+      />
+      {value && (
+        <button
+          onClick={() => onChange("")}
+          className="p-1 rounded-full text-stone-400 hover:text-ink hover:bg-stone-100 dark:hover:bg-white/10 transition-all duration-150 shrink-0"
+          aria-label="清除输入"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 }

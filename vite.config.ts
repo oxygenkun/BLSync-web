@@ -9,7 +9,10 @@ export default defineConfig(({ mode }) => {
 
   // 从环境变量读取后端地址，用于开发服务器代理配置
   // 如果未设置则使用默认值 http://localhost:8000
-  const backendUrl = env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const configuredApiUrl = env.VITE_API_BASE_URL
+  const backendUrl = configuredApiUrl?.startsWith('http')
+    ? configuredApiUrl
+    : 'http://127.0.0.1:8000'
 
   return {
     plugins: [react(), tailwindcss()],

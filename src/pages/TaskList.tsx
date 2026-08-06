@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { useScanTasks, useTasks, useTaskStats, useUpdateTaskStatus } from "../hooks/useTasks";
 import { TaskFilters } from "../components/TaskFilters";
 import { TaskTable } from "../components/TaskTable";
@@ -52,50 +53,56 @@ export function TaskList() {
   return (
     <div className="h-screen flex flex-col animate-fade-in">
       {/* 顶部固定区域：标题 + 筛选 + 分页 */}
-      <div className="flex-shrink-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+      <div className="flex-shrink-0">
+        <div className="max-w-6xl mx-auto px-6 pt-6 pb-4">
           {/* 页面标题 */}
-          <div className="mb-3">
-            <h1 className="text-xl font-bold text-slate-900">任务列表</h1>
-          </div>
-
-          {/* 状态筛选 */}
-          <div className="mb-3">
-            <TaskFilters filter={filter} onChange={handleStatusChange} stats={stats} />
-          </div>
-
-          <div className="flex min-h-10 items-center">
+          <div className="flex items-end justify-between mb-5">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-ink">任务列表</h1>
+              {data && data.total > 0 && (
+                <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">
+                  共 <span className="font-semibold text-stone-600 dark:text-stone-300 tabular-nums">{data.total}</span> 个任务
+                </p>
+              )}
+            </div>
             <button
               onClick={() => scanTasks.mutate()}
               disabled={scanTasks.isPending}
-              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-paper bg-ink rounded-full hover:opacity-85 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
             >
-              {scanTasks.isPending ? "扫描中..." : "Scan"}
+              <RefreshCw className={`w-4 h-4 ${scanTasks.isPending ? "animate-spin" : ""}`} />
+              {scanTasks.isPending ? "扫描中…" : "扫描收藏夹"}
             </button>
+          </div>
 
-            {/* 分页 */}
+          {/* 状态筛选 + 分页 */}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <TaskFilters filter={filter} onChange={handleStatusChange} stats={stats} />
+
             {data && data.total > 0 && (
-              <div className="flex flex-1 items-center justify-center gap-2">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
-                  className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+                  aria-label="上一页"
+                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
                 >
-                  上一页
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg">
-                  <span className="text-sm font-medium text-slate-900">{currentPage}</span>
-                  <span className="text-sm text-slate-400">/</span>
-                  <span className="text-sm text-slate-600">{totalPages}</span>
-                </div>
+                <span className="px-2 text-sm tabular-nums">
+                  <span className="font-semibold text-ink">{currentPage}</span>
+                  <span className="text-stone-300 dark:text-stone-600 mx-1">/</span>
+                  <span className="text-stone-400 dark:text-stone-500">{totalPages}</span>
+                </span>
 
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
-                  className="px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+                  aria-label="下一页"
+                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
                 >
-                  下一页
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -105,7 +112,7 @@ export function TaskList() {
 
       {/* 可滚动的表格区域 */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="max-w-6xl mx-auto px-6 pb-6">
           <TaskTable
             tasks={data?.items || []}
             progressByTaskId={taskProgress}

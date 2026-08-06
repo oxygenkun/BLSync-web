@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { LoaderCircle, AlertTriangle, Download } from "lucide-react";
 import { useTaskStore } from "../store/taskStore";
 import { useVideoInfo } from "../hooks/useVideoInfo";
 import { useCreateTask } from "../hooks/useTasks";
@@ -47,11 +48,11 @@ export function AddTask() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 animate-fade-in">
+    <div className="max-w-2xl mx-auto px-6 py-10 animate-fade-in">
       {/* 页面标题 */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">添加下载任务</h1>
-        <p className="text-slate-500 mt-1">粘贴 Bilibili 视频链接并选择要下载的分集</p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-ink">添加下载任务</h1>
+        <p className="text-sm text-stone-400 mt-1.5">粘贴 Bilibili 视频链接，选择要下载的分集</p>
       </div>
 
       {/* URL 输入 */}
@@ -79,17 +80,19 @@ export function AddTask() {
           <button
             onClick={handleSubmit}
             disabled={createTaskMutation.isPending}
-            className="w-full px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-accent to-accent-deep text-white font-medium rounded-full shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:brightness-105 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-200"
           >
             {createTaskMutation.isPending ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                创建中...
-              </span>
-            ) : "创建任务"}
+              <>
+                <LoaderCircle className="w-4 h-4 animate-spin" />
+                创建中…
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" strokeWidth={2} />
+                创建任务
+              </>
+            )}
           </button>
         </div>
       )}
@@ -97,11 +100,8 @@ export function AddTask() {
       {isLoading && (
         <div className="card p-12 text-center animate-fade-in">
           <div className="inline-flex flex-col items-center gap-3">
-            <svg className="w-8 h-8 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <span className="text-slate-500 font-medium">解析视频信息中...</span>
+            <LoaderCircle className="w-7 h-7 text-accent animate-spin" strokeWidth={2} />
+            <span className="text-stone-400 text-sm font-medium">解析视频信息中…</span>
           </div>
         </div>
       )}
@@ -109,13 +109,11 @@ export function AddTask() {
       {bvid && !isLoading && !videoInfo && (
         <div className="card p-12 text-center animate-fade-in">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center">
-              <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+            <div className="w-14 h-14 rounded-2xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-rose-500 dark:text-rose-400" strokeWidth={1.8} />
             </div>
-            <div className="text-red-700 font-medium">无法获取视频信息</div>
-            <p className="text-slate-500 text-sm">请检查链接是否正确或稍后重试</p>
+            <div className="text-ink font-semibold">无法获取视频信息</div>
+            <p className="text-stone-400 text-sm">请检查链接是否正确或稍后重试</p>
           </div>
         </div>
       )}

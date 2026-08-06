@@ -1,4 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
+import { LayoutList, PlusCircle } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -8,47 +10,51 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
 
   const navLinks = [
-    { path: "/", label: "任务列表" },
-    { path: "/add", label: "添加任务" },
+    { path: "/", label: "任务列表", icon: LayoutList },
+    { path: "/add", label: "添加任务", icon: PlusCircle },
   ];
 
   return (
     <div className="min-h-screen">
-      {/* 导航栏 - 玻璃态效果 */}
-      <nav className="glass-strong sticky top-0 z-50 border-b border-slate-200/50">
+      {/* 导航栏 */}
+      <nav className="glass-strong sticky top-0 z-50 border-b border-stone-900/8 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link
-              to="/"
-              className="flex items-center gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all duration-300">
-                <span className="text-white font-bold text-sm">BL</span>
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-xl bg-ink flex items-center justify-center transition-transform duration-300 group-hover:-rotate-6">
+                <span className="text-accent font-display italic font-bold text-sm leading-none translate-y-px">
+                  B
+                </span>
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                BLSync
+              <span className="text-lg font-bold tracking-tight text-ink">
+                BL<span className="text-accent-deep">Sync</span>
               </span>
             </Link>
 
-            {/* 导航链接 */}
-            <div className="flex gap-1 bg-slate-100/50 p-1 rounded-xl">
-              {navLinks.map((link) => {
-                const isActive = location.pathname === link.path;
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isActive
-                        ? "bg-white text-slate-800 shadow-sm"
-                        : "text-slate-600 hover:text-slate-800 hover:bg-white/50"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+            {/* 导航链接 + 主题切换 */}
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                {navLinks.map((link) => {
+                  const isActive = location.pathname === link.path;
+                  const Icon = link.icon;
+                  return (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-ink text-paper shadow-sm"
+                          : "text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" strokeWidth={isActive ? 2.2 : 1.8} />
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+              <ThemeToggle />
             </div>
           </div>
         </div>

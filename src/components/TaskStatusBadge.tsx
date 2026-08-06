@@ -6,27 +6,29 @@ interface TaskStatusBadgeProps {
 
 const statusConfig: Record<
   TaskStatus,
-  { label: string; className: string }
+  { label: string; dot: string; pulse?: boolean }
 > = {
   ready: {
     label: "准备中",
-    className: "bg-slate-50 text-slate-700 border-slate-200"
+    dot: "bg-stone-400",
   },
   consuming: {
     label: "执行中",
-    className: "bg-blue-50 text-blue-700 border-blue-200"
+    dot: "bg-amber-500",
+    pulse: true,
   },
   downloading: {
     label: "下载中",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200"
+    dot: "bg-sky-500",
+    pulse: true,
   },
   completed: {
     label: "已完成",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200"
+    dot: "bg-emerald-500",
   },
   failed: {
     label: "失败",
-    className: "bg-red-50 text-red-700 border-red-200"
+    dot: "bg-rose-500",
   },
 };
 
@@ -34,9 +36,15 @@ export function TaskStatusBadge({ status }: TaskStatusBadgeProps) {
   const config = statusConfig[status];
 
   return (
-    <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${config.className} shadow-sm`}
-    >
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-stone-600 dark:text-stone-300 bg-surface border border-stone-200/80 dark:border-stone-700">
+      <span className="relative flex h-1.5 w-1.5">
+        {config.pulse && (
+          <span
+            className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${config.dot}`}
+          />
+        )}
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${config.dot}`} />
+      </span>
       {config.label}
     </span>
   );

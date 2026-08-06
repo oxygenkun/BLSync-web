@@ -25,11 +25,9 @@ export function TaskFilters({ filter, onChange, stats }: TaskFiltersProps) {
   const currentStatus = filter.status || "all";
 
   return (
-    <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+    <div className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-stone-900/[0.05] dark:bg-white/[0.06] border border-stone-900/[0.04] dark:border-white/[0.06] max-w-full overflow-x-auto custom-scrollbar">
       {statusFilters.map((item) => {
-        const count = item.value === "all"
-          ? 0
-          : stats?.[item.value] || 0;
+        const count = item.value === "all" ? 0 : stats?.[item.value] || 0;
         const isActive = currentStatus === item.value;
 
         return (
@@ -42,24 +40,24 @@ export function TaskFilters({ filter, onChange, stats }: TaskFiltersProps) {
                 page: 1,
               })
             }
-            className={`group relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
               isActive
-                ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 shadow-sm"
+                ? "bg-white dark:bg-white/[0.14] text-ink shadow-sm"
+                : "text-stone-500 dark:text-stone-400 hover:text-ink"
             }`}
           >
-            <span className="flex items-center gap-2">
-              <span>{item.label}</span>
-              {count > 0 && (
-                <span className={`${
+            <span>{item.label}</span>
+            {count > 0 && (
+              <span
+                className={`px-1.5 py-px rounded-full text-[11px] font-semibold tabular-nums ${
                   isActive
-                    ? "bg-white/20"
-                    : "bg-slate-100 text-slate-600"
-                } px-2 py-0.5 rounded-full text-xs font-medium`}>
-                  {count}
-                </span>
-              )}
-            </span>
+                    ? "bg-accent/15 text-accent-deep"
+                    : "bg-stone-900/[0.06] dark:bg-white/10 text-stone-500 dark:text-stone-400"
+                }`}
+              >
+                {count}
+              </span>
+            )}
           </button>
         );
       })}
