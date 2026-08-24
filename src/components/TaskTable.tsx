@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LoaderCircle, Inbox } from "lucide-react";
+import { LoaderCircle, Inbox, Pause, Play } from "lucide-react";
 import type { Task, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
@@ -8,6 +8,10 @@ interface TaskTableProps {
   progressByTaskId?: Record<number, TaskProgressEvent>;
   isLoading?: boolean;
   onStatusChange?: (taskId: number, newStatus: string, errorMessage?: string) => Promise<void>;
+  onPause?: (taskId: number) => Promise<void>;
+  onResume?: (taskId: number) => Promise<void>;
+  selectedIds?: Set<number>;
+  onSelectionChange?: (ids: Set<number>) => void;
 }
 
 export function TaskTable({
@@ -15,8 +19,38 @@ export function TaskTable({
   progressByTaskId = {},
   isLoading,
   onStatusChange,
+  onPause,
+  onResume,
+  selectedIds,
+  onSelectionChange,
 }: TaskTableProps) {
   const [updatingTaskId, setUpdatingTaskId] = useState<number | null>(null);
+
+  const selectable = selectedIds !== undefined && onSelectionChange !== undefined;
+  const allSelected = selectable && tasks.length > 0 && tasks.every((t) => selectedIds.has(t.id));
+  const someSelected = selectable && tasks.some((t) => selectedIds.has(t.id));
+
+  const toggleAll = () => {
+    if (!selectable) return;
+    const next = new Set(selectedIds);
+    if (allSelected) {
+      tasks.forEach((t) => next.delete(t.id));
+    } else {
+      tasks.forEach((t) => next.add(t.id));
+    }
+    onSelectionChange(next);
+  };
+
+  const toggleOne = (taskId: number) => {
+    if (!selectable) return;
+    const next = new Set(selectedIds);
+    if (next.has(taskId)) {
+      next.delete(taskId);
+    } else {
+      next.add(taskId);
+    }
+    onSelectionChange(next);
+  };
 
   const handleStatusChange = async (taskId: number, newStatus: string) => {
     if (!onStatusChange) return;
@@ -25,6 +59,28 @@ export function TaskTable({
     try {
       const errorMessage = newStatus === "failed" ? "手动设置为失败" : undefined;
       await onStatusChange(taskId, newStatus, errorMessage);
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  };
+
+  const handlePause = async (taskId: number) => {
+    if (!onPause) return;
+
+    setUpdatingTaskId(taskId);
+    try {
+      await onPause(taskId);
+    } finally {
+      setUpdatingTaskId(null);
+    }
+  };
+
+  const handleResume = async (taskId: number) => {
+    if (!onResume) return;
+
+    setUpdatingTaskId(taskId);
+    try {
+      await onResume(taskId);
     } finally {
       setUpdatingTaskId(null);
     }
@@ -61,6 +117,20 @@ export function TaskTable({
         <table className="min-w-full">
           <thead>
             <tr className="border-b border-stone-200/80 dark:border-stone-800">
+              {selectable && (
+                <th className="h-11 pl-5 pr-0 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = !allSelected && someSelected;
+                    }}
+                    onChange={toggleAll}
+                    aria-label="全选"
+                    className="w-4 h-4 rounded border-stone-300 dark:border-stone-600 accent-accent cursor-pointer align-middle"
+                  />
+                </th>
+              )}
               <th className="h-11 px-5 text-left text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.08em]">
                 视频 ID
               </th>
@@ -90,6 +160,17 @@ export function TaskTable({
                 key={task.id}
                 className="h-12 group hover:bg-stone-50/80 dark:hover:bg-white/[0.03] transition-colors duration-150"
               >
+                {selectable && (
+                  <td className="pl-5 pr-0 w-10 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(task.id)}
+                      onChange={() => toggleOne(task.id)}
+                      aria-label={`选择任务 ${task.id}`}
+                      className="w-4 h-4 rounded border-stone-300 dark:border-stone-600 accent-accent cursor-pointer align-middle"
+                    />
+                  </td>
+                )}
                 <td className="px-5 whitespace-nowrap">
                   <span className="text-[13px] font-medium text-ink font-mono tracking-tight">
                     {extractBvidFromTaskKey(task.task_key)}
@@ -115,22 +196,53 @@ export function TaskTable({
                   />
                 </td>
                 <td className="px-5 whitespace-nowrap">
-                  {onStatusChange ? (
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                      disabled={updatingTaskId === task.id}
-                      className="h-8 pl-2.5 pr-7 text-[13px] bg-transparent border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium text-stone-500 dark:text-stone-400 hover:text-ink hover:border-stone-200 dark:hover:border-stone-700 hover:bg-white dark:hover:bg-white/[0.06] cursor-pointer"
-                    >
-                      <option value="ready">准备中</option>
-                      <option value="consuming">执行中</option>
-                      <option value="downloading">下载中</option>
-                      <option value="completed">已完成</option>
-                      <option value="failed">失败</option>
-                    </select>
-                  ) : (
-                    <span className="text-stone-300 dark:text-stone-600 text-sm">-</span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {onStatusChange ? (
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                        disabled={updatingTaskId === task.id}
+                        className="h-8 pl-2.5 pr-7 text-[13px] bg-transparent border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium text-stone-500 dark:text-stone-400 hover:text-ink hover:border-stone-200 dark:hover:border-stone-700 hover:bg-white dark:hover:bg-white/[0.06] cursor-pointer"
+                      >
+                        <option value="ready">准备中</option>
+                        <option value="consuming">执行中</option>
+                        <option value="downloading">下载中</option>
+                        <option value="pausing">暂停中</option>
+                        <option value="paused">已暂停</option>
+                        <option value="completed">已完成</option>
+                        <option value="failed">失败</option>
+                      </select>
+                    ) : (
+                      <span className="text-stone-300 dark:text-stone-600 text-sm">-</span>
+                    )}
+                    {onPause &&
+                      (task.status === "ready" ||
+                        task.status === "consuming" ||
+                        task.status === "downloading") && (
+                        <button
+                          type="button"
+                          title="暂停"
+                          aria-label="暂停"
+                          disabled={updatingTaskId === task.id}
+                          onClick={() => handlePause(task.id)}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-white dark:hover:bg-white/[0.06] border border-transparent hover:border-stone-200 dark:hover:border-stone-700 disabled:opacity-50 transition-all duration-150 cursor-pointer"
+                        >
+                          <Pause className="w-4 h-4" />
+                        </button>
+                      )}
+                    {onResume && task.status === "paused" && (
+                      <button
+                        type="button"
+                        title="继续"
+                        aria-label="继续"
+                        disabled={updatingTaskId === task.id}
+                        onClick={() => handleResume(task.id)}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-white dark:hover:bg-white/[0.06] border border-transparent hover:border-stone-200 dark:hover:border-stone-700 disabled:opacity-50 transition-all duration-150 cursor-pointer"
+                      >
+                        <Play className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </td>
                 <td className="px-5 whitespace-nowrap">
                   <span className="text-[13px] text-stone-400 dark:text-stone-500 tabular-nums">
@@ -163,6 +275,19 @@ function TaskProgressCell({
 
   if (progress.event === "completed") {
     return <span className="text-[13px] font-medium text-emerald-600 dark:text-emerald-400">100%</span>;
+  }
+
+  if (task.status === "pausing") {
+    return <span className="text-[13px] font-medium text-amber-600 dark:text-amber-400">暂停中…</span>;
+  }
+
+  if (task.status === "paused" || progress.status === "paused") {
+    const percent = progress.overall_percent ?? progress.episode_percent ?? 0;
+    return (
+      <span className="text-[13px] font-medium text-stone-500 dark:text-stone-400">
+        已暂停 · {percent.toFixed(1)}%
+      </span>
+    );
   }
 
   if (progress.status === "postprocessing") {

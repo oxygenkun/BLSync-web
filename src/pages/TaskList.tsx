@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
-import { useScanTasks, useTasks, useTaskStats, useUpdateTaskStatus } from "../hooks/useTasks";
+import { RefreshCw, ChevronLeft, ChevronRight, Trash2, X } from "lucide-react";
+import { useScanTasks, useTasks, useTaskStats, useUpdateTaskStatus, usePauseTask, useResumeTask, useBatchUpdateTaskStatus, useBatchDeleteTasks } from "../hooks/useTasks";
 import { TaskFilters } from "../components/TaskFilters";
 import { TaskTable } from "../components/TaskTable";
 import type { TaskQuery } from "../types/task";
@@ -16,22 +16,32 @@ export function TaskList() {
     const params = new URLSearchParams(location.search);
     const page = parseInt(params.get("page") || "1", 10);
     const statusParam = params.get("status");
-    const status = (statusParam === "ready" || statusParam === "consuming" || statusParam === "downloading" || statusParam === "completed" || statusParam === "failed")
+    const status = (statusParam === "ready" || statusParam === "consuming" || statusParam === "downloading" || statusParam === "pausing" || statusParam === "paused" || statusParam === "completed" || statusParam === "failed")
       ? statusParam
       : undefined;
     return { page, page_size: 20, status };
   };
 
   const [filter, setFilter] = useState<TaskQuery>(getQueryParams);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const { data, isLoading } = useTasks(filter);
   const { data: stats } = useTaskStats();
   const updateTaskStatus = useUpdateTaskStatus();
+  const pauseTask = usePauseTask();
+  const resumeTask = useResumeTask();
+  const batchUpdateTaskStatus = useBatchUpdateTaskStatus();
+  const batchDeleteTasks = useBatchDeleteTasks();
   const scanTasks = useScanTasks();
   const taskProgress = useTaskProgress(data?.items || []);
 
   const currentPage = filter.page || 1;
   const totalPages = data ? Math.ceil(data.total / (filter.page_size || 20)) : 0;
+
+  // 筛选/翻页变化时清空选中，避免误操作不可见的行
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [filter]);
 
   // 更新 URL 参数
   useEffect(() => {
@@ -48,6 +58,39 @@ export function TaskList() {
 
   const handleStatusChange = (newFilter: TaskQuery) => {
     setFilter(newFilter);
+  };
+
+  const handlePause = async (taskId: number) => {
+    await pauseTask.mutateAsync(taskId);
+  };
+
+  const handleResume = async (taskId: number) => {
+    await resumeTask.mutateAsync(taskId);
+  };
+
+  const handleBatchResult = (result: { succeeded: number[]; failed: { task_id: number; detail: string }[] }) => {
+    if (result.failed.length > 0) {
+      alert(`部分操作失败：${result.failed.map((f) => `任务 ${f.task_id}（${f.detail}）`).join("、")}`);
+    }
+    setSelectedIds(new Set());
+  };
+
+  const handleBatchStatusChange = async (status: string) => {
+    if (selectedIds.size === 0 || !status) return;
+    const errorMessage = status === "failed" ? "手动批量设置为失败" : undefined;
+    const result = await batchUpdateTaskStatus.mutateAsync({
+      taskIds: [...selectedIds],
+      status,
+      errorMessage,
+    });
+    handleBatchResult(result);
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`确定删除选中的 ${selectedIds.size} 个任务吗？此操作不可恢复。`)) return;
+    const result = await batchDeleteTasks.mutateAsync([...selectedIds]);
+    handleBatchResult(result);
   };
 
   return (
@@ -107,6 +150,48 @@ export function TaskList() {
               </div>
             )}
           </div>
+
+          {/* 批量操作栏 */}
+          {selectedIds.size > 0 && (
+            <div className="mt-3 flex items-center gap-3 flex-wrap rounded-2xl border border-accent/30 bg-accent/[0.06] px-4 py-2.5">
+              <span className="text-sm text-ink">
+                已选 <span className="font-semibold tabular-nums">{selectedIds.size}</span> 项
+              </span>
+              <select
+                value=""
+                onChange={(e) => {
+                  void handleBatchStatusChange(e.target.value);
+                  e.target.value = "";
+                }}
+                disabled={batchUpdateTaskStatus.isPending}
+                className="h-8 pl-2.5 pr-7 text-[13px] bg-white dark:bg-white/[0.06] border border-stone-200 dark:border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium text-stone-600 dark:text-stone-300 cursor-pointer"
+              >
+                <option value="" disabled>
+                  {batchUpdateTaskStatus.isPending ? "处理中…" : "批量修改状态"}
+                </option>
+                <option value="ready">准备中</option>
+                <option value="consuming">执行中</option>
+                <option value="downloading">下载中</option>
+                <option value="completed">已完成</option>
+                <option value="failed">失败</option>
+              </select>
+              <button
+                onClick={handleBatchDelete}
+                disabled={batchDeleteTasks.isPending}
+                className="flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {batchDeleteTasks.isPending ? "删除中…" : "批量删除"}
+              </button>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="flex items-center gap-1 h-8 px-2.5 text-[13px] text-stone-400 dark:text-stone-500 hover:text-ink rounded-lg hover:bg-stone-900/5 dark:hover:bg-white/10 transition-all duration-150"
+              >
+                <X className="w-3.5 h-3.5" />
+                取消选择
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -120,6 +205,10 @@ export function TaskList() {
             onStatusChange={async (taskId, status, errorMessage) => {
               await updateTaskStatus.mutateAsync({ taskId, status, errorMessage });
             }}
+            onPause={handlePause}
+            onResume={handleResume}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
           />
         </div>
       </div>

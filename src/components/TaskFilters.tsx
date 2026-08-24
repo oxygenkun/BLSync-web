@@ -7,6 +7,8 @@ interface TaskFiltersProps {
     ready: number;
     consuming: number;
     downloading: number;
+    pausing: number;
+    paused: number;
     completed: number;
     failed: number;
   };
@@ -17,6 +19,8 @@ const statusFilters: Array<{ value: TaskStatus | "all"; label: string }> = [
   { value: "ready", label: "准备中" },
   { value: "consuming", label: "执行中" },
   { value: "downloading", label: "下载中" },
+  { value: "pausing", label: "暂停中" },
+  { value: "paused", label: "已暂停" },
   { value: "completed", label: "已完成" },
   { value: "failed", label: "已失败" },
 ];

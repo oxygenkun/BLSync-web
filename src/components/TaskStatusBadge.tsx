@@ -22,6 +22,15 @@ const statusConfig: Record<
     dot: "bg-sky-500",
     pulse: true,
   },
+  pausing: {
+    label: "暂停中",
+    dot: "bg-amber-500",
+    pulse: true,
+  },
+  paused: {
+    label: "已暂停",
+    dot: "bg-stone-400",
+  },
   completed: {
     label: "已完成",
     dot: "bg-emerald-500",

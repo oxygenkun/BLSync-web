@@ -49,3 +49,45 @@ export async function updateTaskStatus(
     error_message: errorMessage,
   });
 }
+
+export interface BatchResult {
+  succeeded: number[];
+  failed: { task_id: number; detail: string }[];
+}
+
+/**
+ * 批量更新任务状态
+ */
+export async function batchUpdateTaskStatus(
+  taskIds: number[],
+  status: string,
+  errorMessage?: string
+): Promise<BatchResult> {
+  return apiClient.put("/tasks/status", {
+    task_ids: taskIds,
+    status,
+    error_message: errorMessage,
+  });
+}
+
+/**
+ * 批量删除任务
+ */
+export async function batchDeleteTasks(taskIds: number[]): Promise<BatchResult> {
+  return apiClient.delete("/tasks", { data: { task_ids: taskIds } });
+}
+
+
+/**
+ * 暂停任务
+ */
+export async function pauseTask(taskId: number): Promise<Task> {
+  return apiClient.post(`/tasks/${taskId}/pause`);
+}
+
+/**
+ * 继续任务
+ */
+export async function resumeTask(taskId: number): Promise<Task> {
+  return apiClient.post(`/tasks/${taskId}/resume`);
+}

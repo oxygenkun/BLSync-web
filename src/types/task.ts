@@ -1,5 +1,5 @@
 // 任务状态类型
-export type TaskStatus = "ready" | "consuming" | "downloading" | "completed" | "failed";
+export type TaskStatus = "ready" | "consuming" | "downloading" | "pausing" | "paused" | "completed" | "failed";
 
 // 任务类型
 export type TaskType = "bili_video";
@@ -51,6 +51,8 @@ export interface TaskStats {
   ready: number;
   consuming: number;
   downloading: number;
+  pausing: number;
+  paused: number;
   completed: number;
   failed: number;
 }

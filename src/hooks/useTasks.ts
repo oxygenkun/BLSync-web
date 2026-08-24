@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTask, getTaskStats, getTasks, scanTasks, updateTaskStatus } from "../api/tasks";
+import { batchDeleteTasks, batchUpdateTaskStatus, createTask, getTaskStats, getTasks, pauseTask, resumeTask, scanTasks, updateTaskStatus } from "../api/tasks";
 import type { CreateTaskRequest, TaskQuery } from "../types/task";
 
 /**
@@ -67,6 +67,72 @@ export function useScanTasks() {
   return useMutation({
     mutationFn: scanTasks,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+}
+
+/**
+ * 批量更新任务状态
+ */
+export function useBatchUpdateTaskStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskIds, status, errorMessage }: {
+      taskIds: number[];
+      status: string;
+      errorMessage?: string;
+    }) => batchUpdateTaskStatus(taskIds, status, errorMessage),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+}
+
+/**
+ * 批量删除任务
+ */
+export function useBatchDeleteTasks() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskIds: number[]) => batchDeleteTasks(taskIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+}
+
+/**
+ * 暂停任务
+ */
+export function usePauseTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: number) => pauseTask(taskId),
+    onSuccess: () => {
+      // 刷新任务列表和统计
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["taskStats"] });
+    },
+  });
+}
+
+/**
+ * 继续任务
+ */
+export function useResumeTask() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: number) => resumeTask(taskId),
+    onSuccess: () => {
+      // 刷新任务列表和统计
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["taskStats"] });
     },
