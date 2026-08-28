@@ -441,7 +441,7 @@ function extractFavidFromTaskKey(taskKey: string): string {
 
 function formatFavorite(taskKey: string): string {
   const favid = extractFavidFromTaskKey(taskKey);
-  return favid === "-1" ? "未归类" : favid;
+  return favid === "-1" ? "" : favid;
 }
 
 function formatSelectedEpisodes(taskData: string): string {
