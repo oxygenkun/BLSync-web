@@ -303,23 +303,37 @@ function TaskFileLinks({ task }: { task: Task }) {
     );
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-1">
-      {files.map((file) => (
+  if (files.length > 1) {
+    return (
+      <div className="grid w-[172px] grid-cols-5 gap-1">
+        {files.map((file) => (
           <a
             key={file.index}
             href={buildTaskFileUrl(file.download_url)}
             target="_blank"
             rel="noreferrer"
             title={`${file.name} (${formatBytes(file.size)})`}
-            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 bg-emerald-50 px-2 text-xs font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+            className="inline-flex h-7 min-w-0 items-center justify-center overflow-hidden rounded-md border border-emerald-200/80 bg-emerald-50 px-1 text-xs font-semibold tabular-nums text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
           >
-            <FileVideo className="h-3.5 w-3.5" aria-hidden="true" />
             {fileLinkLabel(files.length, file)}
-            {files.length === 1 && <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />}
           </a>
-      ))}
-    </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={buildTaskFileUrl(files[0].download_url)}
+      target="_blank"
+      rel="noreferrer"
+      title={`${files[0].name} (${formatBytes(files[0].size)})`}
+      className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 bg-emerald-50 px-2 text-xs font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
+    >
+      <FileVideo className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>打开</span>
+      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+    </a>
   );
 }
 
