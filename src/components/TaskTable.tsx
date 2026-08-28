@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play } from "lucide-react";
 import { buildTaskFileUrl } from "../api/files";
 import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
@@ -157,8 +157,10 @@ export function TaskTable({
           </thead>
           <tbody className="divide-y divide-stone-100 dark:divide-stone-800/70">
             {tasks.map((task) => (
-              <Fragment key={task.id}>
-                <tr className="h-12 group hover:bg-stone-50/80 dark:hover:bg-white/[0.03] transition-colors duration-150">
+              <tr
+                key={task.id}
+                className="h-12 group hover:bg-stone-50/80 dark:hover:bg-white/[0.03] transition-colors duration-150"
+              >
                 {selectable && (
                   <td className="pl-5 pr-0 w-10 whitespace-nowrap">
                     <input
@@ -250,17 +252,6 @@ export function TaskTable({
                   </span>
                 </td>
               </tr>
-                {task.status === "completed" && (task.files?.length ?? 0) > 1 && (
-                  <tr className="border-t-0">
-                    <td
-                      colSpan={selectable ? 8 : 7}
-                      className="px-5 pb-2.5"
-                    >
-                      <FileChipsRow task={task} />
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
             ))}
           </tbody>
         </table>
@@ -312,48 +303,22 @@ function TaskFileLinks({ task }: { task: Task }) {
     );
   }
 
-  // 多P文件链接由表格下方的整行区域展示（FileChipsRow），避免撑宽操作列
-  if (files.length > 1) {
-    return null;
-  }
-
   return (
-    <a
-      href={buildTaskFileUrl(files[0].download_url)}
-      target="_blank"
-      rel="noreferrer"
-      title={`${files[0].name} (${formatBytes(files[0].size)})`}
-      className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 px-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors hover:border-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-    >
-      <FileVideo className="h-3.5 w-3.5" aria-hidden="true" />
-      <span>打开</span>
-      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-    </a>
-  );
-}
-
-function FileChipsRow({ task }: { task: Task }) {
-  const files = task.files ?? [];
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="shrink-0 text-[11px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wide">
-        文件
-      </span>
-      <div className="grid grid-cols-5 gap-1">
-        {files.map((file) => (
+    <div className="flex flex-wrap items-center gap-1">
+      {files.map((file) => (
           <a
             key={file.index}
             href={buildTaskFileUrl(file.download_url)}
             target="_blank"
             rel="noreferrer"
             title={`${file.name} (${formatBytes(file.size)})`}
-            className="inline-flex h-7 min-w-0 items-center justify-center overflow-hidden rounded-md border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 px-1 text-xs font-semibold tabular-nums text-emerald-700 dark:text-emerald-400 transition-colors hover:border-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 bg-emerald-50 px-2 text-xs font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
           >
+            <FileVideo className="h-3.5 w-3.5" aria-hidden="true" />
             {fileLinkLabel(files.length, file)}
+            {files.length === 1 && <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />}
           </a>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }

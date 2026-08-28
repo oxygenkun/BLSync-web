@@ -38,11 +38,6 @@ export function TaskList() {
   const currentPage = filter.page || 1;
   const totalPages = data ? Math.ceil(data.total / (filter.page_size || 20)) : 0;
 
-  // 筛选/翻页变化时清空选中，避免误操作不可见的行
-  useEffect(() => {
-    setSelectedIds(new Set());
-  }, [filter]);
-
   // 更新 URL 参数
   useEffect(() => {
     const params = new URLSearchParams();
@@ -53,10 +48,12 @@ export function TaskList() {
   }, [filter, navigate]);
 
   const handlePageChange = (newPage: number) => {
+    setSelectedIds(new Set());
     setFilter({ ...filter, page: newPage });
   };
 
   const handleStatusChange = (newFilter: TaskQuery) => {
+    setSelectedIds(new Set());
     setFilter(newFilter);
   };
 
