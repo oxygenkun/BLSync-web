@@ -15,6 +15,9 @@ export interface Task {
   updated_at: string;
   completed_at: string | null;
   error_message: string | null;
+  // 后端任务列表附带字段；部分接口（如任务详情）不返回
+  files?: TaskFile[];
+  video?: TaskVideoInfo | null;
 }
 
 // 任务列表响应
@@ -58,6 +61,29 @@ export interface TaskStats {
 }
 
 export type TaskProgressEventType = "status" | "progress" | "completed" | "failed";
+
+export interface TaskFile {
+  index: number;
+  name: string;
+  size: number;
+  download_url: string;
+}
+
+export interface TaskFilesResponse {
+  task_id: number;
+  files: TaskFile[];
+}
+
+// 后端任务列表附带的基本视频信息（来自 videos 表）
+export interface TaskVideoInfo {
+  bvid: string;
+  title: string;
+  pic: string | null;
+  owner_name: string | null;
+  owner_mid: number | null;
+  duration: number | null;
+  pubdate: number | null;
+}
 
 export interface TaskProgressEvent {
   event: TaskProgressEventType;

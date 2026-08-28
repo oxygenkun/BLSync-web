@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { LoaderCircle, Inbox, Pause, Play } from "lucide-react";
-import type { Task, TaskProgressEvent } from "../types/task";
+import { Fragment, useState } from "react";
+import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play } from "lucide-react";
+import { buildTaskFileUrl } from "../api/files";
+import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
 interface TaskTableProps {
@@ -132,7 +133,7 @@ export function TaskTable({
                 </th>
               )}
               <th className="h-11 px-5 text-left text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.08em]">
-                视频 ID
+                视频
               </th>
               <th className="h-11 px-5 text-left text-[11px] font-semibold text-stone-400 dark:text-stone-500 uppercase tracking-[0.08em]">
                 收藏夹
@@ -156,10 +157,8 @@ export function TaskTable({
           </thead>
           <tbody className="divide-y divide-stone-100 dark:divide-stone-800/70">
             {tasks.map((task) => (
-              <tr
-                key={task.id}
-                className="h-12 group hover:bg-stone-50/80 dark:hover:bg-white/[0.03] transition-colors duration-150"
-              >
+              <Fragment key={task.id}>
+                <tr className="h-12 group hover:bg-stone-50/80 dark:hover:bg-white/[0.03] transition-colors duration-150">
                 {selectable && (
                   <td className="pl-5 pr-0 w-10 whitespace-nowrap">
                     <input
@@ -172,24 +171,22 @@ export function TaskTable({
                   </td>
                 )}
                 <td className="px-5 whitespace-nowrap">
-                  <span className="text-[13px] font-medium text-ink font-mono tracking-tight">
-                    {extractBvidFromTaskKey(task.task_key)}
-                  </span>
-                </td>
-                <td className="px-5 whitespace-nowrap">
-                  <span className="text-[13px] text-stone-500 dark:text-stone-400 font-mono">
-                    {extractFavidFromTaskKey(task.task_key)}
-                  </span>
+                  <TaskVideoCell task={task} />
                 </td>
                 <td className="px-5 whitespace-nowrap">
                   <span className="text-[13px] text-stone-500 dark:text-stone-400">
+                    {formatFavorite(task.task_key)}
+                  </span>
+                </td>
+                <td className="px-5 whitespace-nowrap">
+                  <span className="text-[13px] text-stone-500 dark:text-stone-400 max-w-[140px] truncate inline-block align-middle" title={formatSelectedEpisodes(task.task_data)}>
                     {formatSelectedEpisodes(task.task_data)}
                   </span>
                 </td>
                 <td className="px-5 whitespace-nowrap">
                   <TaskStatusBadge status={task.status} />
                 </td>
-                <td className="px-5 min-w-[240px]">
+                <td className="px-5 min-w-[180px]">
                   <TaskProgressCell
                     task={task}
                     progress={progressByTaskId[task.id]}
@@ -197,7 +194,7 @@ export function TaskTable({
                 </td>
                 <td className="px-5 whitespace-nowrap">
                   <div className="flex items-center gap-1">
-                    {onStatusChange ? (
+                    {onStatusChange && task.status !== "completed" ? (
                       <select
                         value={task.status}
                         onChange={(e) => handleStatusChange(task.id, e.target.value)}
@@ -213,7 +210,9 @@ export function TaskTable({
                         <option value="failed">失败</option>
                       </select>
                     ) : (
-                      <span className="text-stone-300 dark:text-stone-600 text-sm">-</span>
+                      <span className="text-[13px] font-medium text-stone-400 dark:text-stone-500">
+                        {task.status === "completed" ? "已完成" : "-"}
+                      </span>
                     )}
                     {onPause &&
                       (task.status === "ready" ||
@@ -242,6 +241,7 @@ export function TaskTable({
                         <Play className="w-4 h-4" />
                       </button>
                     )}
+                    <TaskFileLinks task={task} />
                   </div>
                 </td>
                 <td className="px-5 whitespace-nowrap">
@@ -250,12 +250,125 @@ export function TaskTable({
                   </span>
                 </td>
               </tr>
+                {task.status === "completed" && (task.files?.length ?? 0) > 1 && (
+                  <tr className="border-t-0">
+                    <td
+                      colSpan={selectable ? 8 : 7}
+                      className="px-5 pb-2.5"
+                    >
+                      <FileChipsRow task={task} />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
       </div>
     </div>
   );
+}
+
+function TaskVideoCell({ task }: { task: Task }) {
+  const bvid = extractBvidFromTaskKey(task.task_key);
+  const video = task.video;
+
+  if (!video?.title) {
+    return (
+      <span className="text-[13px] font-medium text-ink font-mono tracking-tight">
+        {bvid}
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex max-w-[220px] flex-col min-w-0">
+      <span
+        className="text-[13px] font-medium text-ink truncate"
+        title={video.title}
+      >
+        {video.title}
+      </span>
+      <span className="text-[11px] text-stone-400 dark:text-stone-500 font-mono tracking-tight">
+        {video.owner_name ? `${video.owner_name} · ` : ""}
+        {bvid}
+      </span>
+    </div>
+  );
+}
+
+function TaskFileLinks({ task }: { task: Task }) {
+  const files = task.files ?? [];
+
+  if (task.status !== "completed") {
+    return null;
+  }
+
+  if (files.length === 0) {
+    return (
+      <span className="text-xs text-stone-300 dark:text-stone-600 whitespace-nowrap">
+        无文件
+      </span>
+    );
+  }
+
+  // 多P文件链接由表格下方的整行区域展示（FileChipsRow），避免撑宽操作列
+  if (files.length > 1) {
+    return null;
+  }
+
+  return (
+    <a
+      href={buildTaskFileUrl(files[0].download_url)}
+      target="_blank"
+      rel="noreferrer"
+      title={`${files[0].name} (${formatBytes(files[0].size)})`}
+      className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 px-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 transition-colors hover:border-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+    >
+      <FileVideo className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>打开</span>
+      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+    </a>
+  );
+}
+
+function FileChipsRow({ task }: { task: Task }) {
+  const files = task.files ?? [];
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="shrink-0 text-[11px] font-medium text-stone-400 dark:text-stone-500 uppercase tracking-wide">
+        文件
+      </span>
+      <div className="grid grid-cols-5 gap-1">
+        {files.map((file) => (
+          <a
+            key={file.index}
+            href={buildTaskFileUrl(file.download_url)}
+            target="_blank"
+            rel="noreferrer"
+            title={`${file.name} (${formatBytes(file.size)})`}
+            className="inline-flex h-7 min-w-0 items-center justify-center overflow-hidden rounded-md border border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50 dark:bg-emerald-950/40 px-1 text-xs font-semibold tabular-nums text-emerald-700 dark:text-emerald-400 transition-colors hover:border-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          >
+            {fileLinkLabel(files.length, file)}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function fileLinkLabel(fileCount: number, file: TaskFile): string {
+  if (fileCount === 1) {
+    return "打开";
+  }
+  // yutto 默认命名形如 P001-xxx.mp4，尽量提取分P号
+  const pageMatch = /P(\d+)(?:[-_.\s]|$)/i.exec(file.name);
+  if (pageMatch) {
+    return `P${parseInt(pageMatch[1], 10)}`;
+  }
+  // 未识别到分P号时退化为序号，保持方块大小
+  return String(file.index + 1);
 }
 
 function TaskProgressCell({
@@ -305,7 +418,7 @@ function TaskProgressCell({
       : null;
 
   return (
-    <div className="flex min-w-[220px] flex-col gap-1.5 py-1">
+    <div className="flex min-w-[180px] flex-col gap-1.5 py-1">
       <div className="flex items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400">
         <span className="truncate">
           {episodeLabel || progress.status}
@@ -345,6 +458,11 @@ function extractFavidFromTaskKey(taskKey: string): string {
   } catch {
     return "N/A";
   }
+}
+
+function formatFavorite(taskKey: string): string {
+  const favid = extractFavidFromTaskKey(taskKey);
+  return favid === "-1" ? "未归类" : favid;
 }
 
 function formatSelectedEpisodes(taskData: string): string {

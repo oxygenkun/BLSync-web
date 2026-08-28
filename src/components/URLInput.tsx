@@ -40,6 +40,7 @@ export function URLInput({
       />
       {value && (
         <button
+          type="button"
           onClick={() => onChange("")}
           className="p-1 rounded-full text-stone-400 hover:text-ink hover:bg-stone-100 dark:hover:bg-white/10 transition-all duration-150 shrink-0"
           aria-label="清除输入"

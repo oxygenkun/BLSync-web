@@ -26,6 +26,10 @@ export default defineConfig(({ mode }) => {
           target: backendUrl,
           changeOrigin: true,
         },
+        '/file': {
+          target: backendUrl,
+          changeOrigin: true,
+        },
       },
     },
     build: {

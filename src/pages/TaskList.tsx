@@ -77,9 +77,13 @@ export function TaskList() {
 
   const handleBatchStatusChange = async (status: string) => {
     if (selectedIds.size === 0 || !status) return;
+    const mutableTaskIds = (data?.items ?? [])
+      .filter((task) => selectedIds.has(task.id) && task.status !== "completed")
+      .map((task) => task.id);
+    if (mutableTaskIds.length === 0) return;
     const errorMessage = status === "failed" ? "手动批量设置为失败" : undefined;
     const result = await batchUpdateTaskStatus.mutateAsync({
-      taskIds: [...selectedIds],
+      taskIds: mutableTaskIds,
       status,
       errorMessage,
     });
@@ -175,6 +179,7 @@ export function TaskList() {
                 <option value="completed">已完成</option>
                 <option value="failed">失败</option>
               </select>
+              <span className="text-xs text-stone-400 dark:text-stone-500">已完成任务不会修改状态</span>
               <button
                 onClick={handleBatchDelete}
                 disabled={batchDeleteTasks.isPending}
