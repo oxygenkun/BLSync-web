@@ -1,4 +1,4 @@
-import { type PointerEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play } from "lucide-react";
 import { buildTaskFileUrl } from "../api/files";
 import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
@@ -245,17 +245,11 @@ export function TaskTable({
     document.body.classList.add("task-table-resizing");
   };
 
-  const effectiveColumnWidths = useMemo(
-    () => calculateEffectiveColumnWidths(columnWidths, availableWidth, selectable),
-    [availableWidth, columnWidths, selectable],
-  );
+  const effectiveColumnWidths = calculateEffectiveColumnWidths(columnWidths, availableWidth, selectable);
 
-  const tableWidth = useMemo(
-    () => COLUMN_IDS.reduce(
-      (total, id) => total + effectiveColumnWidths[id],
-      selectable ? SELECTION_COLUMN_WIDTH : 0,
-    ),
-    [effectiveColumnWidths, selectable],
+  const tableWidth = COLUMN_IDS.reduce(
+    (total, id) => total + effectiveColumnWidths[id],
+    selectable ? SELECTION_COLUMN_WIDTH : 0,
   );
 
   const resizeColumnBy = (column: ColumnId, delta: number) => {
