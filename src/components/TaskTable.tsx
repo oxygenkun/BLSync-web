@@ -8,6 +8,7 @@ interface TaskTableProps {
   tasks: Task[];
   progressByTaskId?: Record<number, TaskProgressEvent>;
   isLoading?: boolean;
+  isRefreshing?: boolean;
   onStatusChange?: (taskId: number, newStatus: string, errorMessage?: string) => Promise<void>;
   onPause?: (taskId: number) => Promise<void>;
   onResume?: (taskId: number) => Promise<void>;
@@ -107,6 +108,7 @@ export function TaskTable({
   tasks,
   progressByTaskId = {},
   isLoading,
+  isRefreshing = false,
   onStatusChange,
   onPause,
   onResume,
@@ -302,8 +304,11 @@ export function TaskTable({
   }
 
   return (
-    <div className="card overflow-hidden">
-      <div ref={tableViewportRef} className="custom-scrollbar overflow-x-auto">
+    <div className="card relative overflow-hidden" aria-busy={isRefreshing}>
+      <div
+        ref={tableViewportRef}
+        className={`custom-scrollbar overflow-x-auto transition-opacity duration-150 ${isRefreshing ? "pointer-events-none opacity-60" : "opacity-100"}`}
+      >
         <table className="table-fixed" style={{ width: `${tableWidth}px` }}>
           <colgroup>
             {selectable && <col style={{ width: `${SELECTION_COLUMN_WIDTH}px` }} />}
@@ -479,7 +484,7 @@ function TaskVideoCell({ task }: { task: Task }) {
 
   return (
     <div className="flex h-[2.375rem] w-full min-w-0 flex-col justify-center">
-      <CopyableText value={video.title} className="text-[13px] leading-5 font-medium text-ink" truncate expandOnHover />
+      <CopyableText value={video.title} className="list-title text-[13px] leading-5 font-medium text-ink" truncate expandOnHover />
       <span className="mt-0.5 ml-[0.0625rem] flex h-4 min-w-0 items-center whitespace-nowrap text-[11px] leading-4 text-stone-400 dark:text-stone-500 font-mono tracking-tight">
         {video.owner_name && <CopyableText value={video.owner_name} className="h-4 max-w-[48%] leading-4" truncate />}
         {video.owner_name && <span className="h-4 px-1.5 leading-4 text-stone-300 dark:text-stone-600">·</span>}

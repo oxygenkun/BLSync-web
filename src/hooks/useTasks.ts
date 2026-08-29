@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { batchDeleteTasks, batchUpdateTaskStatus, createTask, getTaskStats, getTasks, pauseTask, resumeTask, scanTasks, updateTaskStatus } from "../api/tasks";
 import type { CreateTaskRequest, TaskQuery } from "../types/task";
 
@@ -9,6 +9,8 @@ export function useTasks(query: TaskQuery = {}) {
   return useQuery({
     queryKey: ["tasks", query],
     queryFn: () => getTasks(query),
+    // 翻页时保留上一页内容，避免表格被整块 loading 状态替换。
+    placeholderData: keepPreviousData,
   });
 }
 

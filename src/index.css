@@ -52,6 +52,13 @@ body.task-table-resizing * {
   @apply absolute left-0 top-0 z-30 w-full whitespace-normal overflow-visible rounded-sm bg-surface shadow-lg;
 }
 
+/* 列表标题行首标点挤压：行首的全角标点（如「、『、（、《 等）压缩为半角宽度，
+   避免换行后行首标点占满一个全角字宽造成参差。
+   注意：text-spacing-trim 目前仅 Chromium 支持，Firefox/Safari 尚不支持。 */
+.list-title {
+  text-spacing-trim: trim-start;
+}
+
 /* 状态胶囊：四段信息（状态/多p/速度/百分比）始终在同一行，按可用宽度逐级精简，速度始终拥有最高展示优先级。 */
 .status-progress-pill {
   container-type: inline-size;

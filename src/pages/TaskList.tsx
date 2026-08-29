@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { RefreshCw, ChevronLeft, ChevronRight, Trash2, X } from "lucide-react";
 import { useScanTasks, useTasks, useTaskStats, useUpdateTaskStatus, usePauseTask, useResumeTask, useBatchUpdateTaskStatus, useBatchDeleteTasks } from "../hooks/useTasks";
@@ -24,8 +24,9 @@ export function TaskList() {
 
   const [filter, setFilter] = useState<TaskQuery>(getQueryParams);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [pageInput, setPageInput] = useState(() => String(filter.page || 1));
 
-  const { data, isLoading } = useTasks(filter);
+  const { data, isFetching, isLoading } = useTasks(filter);
   const { data: stats } = useTaskStats();
   const updateTaskStatus = useUpdateTaskStatus();
   const pauseTask = usePauseTask();
@@ -49,11 +50,29 @@ export function TaskList() {
 
   const handlePageChange = (newPage: number) => {
     setSelectedIds(new Set());
+    setPageInput(String(newPage));
     setFilter({ ...filter, page: newPage });
+  };
+
+  const handlePageJump = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const requestedPage = Number.parseInt(pageInput, 10);
+    if (Number.isNaN(requestedPage)) {
+      setPageInput(String(currentPage));
+      return;
+    }
+
+    const targetPage = Math.min(Math.max(requestedPage, 1), totalPages);
+    if (targetPage !== currentPage) {
+      handlePageChange(targetPage);
+    } else {
+      setPageInput(String(targetPage));
+    }
   };
 
   const handleStatusChange = (newFilter: TaskQuery) => {
     setSelectedIds(new Set());
+    setPageInput(String(newFilter.page || 1));
     setFilter(newFilter);
   };
 
@@ -95,20 +114,13 @@ export function TaskList() {
   };
 
   return (
-    <div className="h-dvh flex flex-col animate-fade-in">
+    <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col overflow-hidden animate-fade-in">
       {/* 顶部固定区域：标题 + 筛选 + 分页 */}
       <div className="flex-shrink-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-4">
           {/* 页面标题 */}
           <div className="flex items-end justify-between mb-5">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-ink">任务列表</h1>
-              {data && data.total > 0 && (
-                <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">
-                  共 <span className="font-semibold text-stone-600 dark:text-stone-300 tabular-nums">{data.total}</span> 个任务
-                </p>
-              )}
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-ink">任务列表</h1>
             <button
               onClick={() => scanTasks.mutate()}
               disabled={scanTasks.isPending}
@@ -134,11 +146,26 @@ export function TaskList() {
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <span className="px-2 text-sm tabular-nums">
-                  <span className="font-semibold text-ink">{currentPage}</span>
-                  <span className="text-stone-300 dark:text-stone-600 mx-1">/</span>
+                <form
+                  onSubmit={handlePageJump}
+                  className="flex items-center px-1 text-sm tabular-nums"
+                  title="点击当前页码，输入后按回车跳转"
+                >
+                  <input
+                    id="task-page-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={pageInput}
+                    onChange={(event) => setPageInput(event.target.value)}
+                    onFocus={(event) => event.currentTarget.select()}
+                    onBlur={() => setPageInput(String(currentPage))}
+                    className="h-7 w-8 rounded-md bg-transparent px-0.5 text-center font-semibold text-ink transition-[background-color,box-shadow] hover:bg-stone-900/5 focus:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 dark:hover:bg-white/[0.06] dark:focus:bg-white/[0.08]"
+                    aria-label={`当前第 ${currentPage} 页，可输入 1 到 ${totalPages} 后按回车跳转`}
+                  />
+                  <span className="mx-1 text-stone-300 dark:text-stone-600">/</span>
                   <span className="text-stone-400 dark:text-stone-500">{totalPages}</span>
-                </span>
+                </form>
 
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
@@ -148,6 +175,7 @@ export function TaskList() {
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
+
               </div>
             )}
           </div>
@@ -199,12 +227,13 @@ export function TaskList() {
       </div>
 
       {/* 可滚动的表格区域 */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-6">
           <TaskTable
             tasks={data?.items || []}
             progressByTaskId={taskProgress}
             isLoading={isLoading}
+            isRefreshing={isFetching && !isLoading}
             onStatusChange={async (taskId, status, errorMessage) => {
               await updateTaskStatus.mutateAsync({ taskId, status, errorMessage });
             }}
@@ -213,6 +242,11 @@ export function TaskList() {
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
           />
+          {data && data.total > 0 && (
+            <p className="mt-2 px-1 text-right text-[11px] text-stone-400 dark:text-stone-500">
+              每页 <span className="tabular-nums">{data.page_size}</span> 个任务
+            </p>
+          )}
         </div>
       </div>
     </div>

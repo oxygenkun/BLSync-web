@@ -18,9 +18,9 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen">
       {/* 导航栏 */}
-      <nav className="glass-strong sticky top-0 z-50 border-b border-stone-900/8 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
+      <nav className="glass-strong sticky top-0 z-50 h-16 border-b border-stone-900/8 dark:border-white/10">
+        <div className="mx-auto h-full max-w-6xl px-6">
+          <div className="flex h-full items-center justify-between">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-xl bg-ink flex items-center justify-center transition-transform duration-300 group-hover:-rotate-6">
