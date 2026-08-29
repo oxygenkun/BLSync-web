@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutList, PlusCircle } from "lucide-react";
+import { LayoutList, PlusCircle, Settings } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 interface LayoutProps {
@@ -12,6 +12,7 @@ export function Layout({ children }: LayoutProps) {
   const navLinks = [
     { path: "/", label: "任务列表", icon: LayoutList },
     { path: "/add", label: "添加任务", icon: PlusCircle },
+    { path: "/settings", label: "配置", icon: Settings },
   ];
 
   return (
