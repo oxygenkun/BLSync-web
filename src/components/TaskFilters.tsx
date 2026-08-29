@@ -37,6 +37,8 @@ export function TaskFilters({ filter, onChange, stats }: TaskFiltersProps) {
         return (
           <button
             key={item.value}
+            type="button"
+            aria-pressed={isActive}
             onClick={() =>
               onChange({
                 ...filter,
@@ -44,7 +46,7 @@ export function TaskFilters({ filter, onChange, stats }: TaskFiltersProps) {
                 page: 1,
               })
             }
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-[color,background-color,box-shadow] duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
               isActive
                 ? "bg-white dark:bg-white/[0.14] text-ink shadow-sm"
                 : "text-stone-500 dark:text-stone-400 hover:text-ink"

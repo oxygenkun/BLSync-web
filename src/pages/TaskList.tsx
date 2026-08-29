@@ -95,10 +95,10 @@ export function TaskList() {
   };
 
   return (
-    <div className="h-screen flex flex-col animate-fade-in">
+    <div className="h-dvh flex flex-col animate-fade-in">
       {/* 顶部固定区域：标题 + 筛选 + 分页 */}
       <div className="flex-shrink-0">
-        <div className="max-w-6xl mx-auto px-6 pt-6 pb-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-4">
           {/* 页面标题 */}
           <div className="flex items-end justify-between mb-5">
             <div>
@@ -112,7 +112,7 @@ export function TaskList() {
             <button
               onClick={() => scanTasks.mutate()}
               disabled={scanTasks.isPending}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-paper bg-ink rounded-full hover:opacity-85 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 shadow-sm"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-paper bg-ink rounded-full hover:opacity-85 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-[opacity,transform,box-shadow] duration-150 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
             >
               <RefreshCw className={`w-4 h-4 ${scanTasks.isPending ? "animate-spin" : ""}`} />
               {scanTasks.isPending ? "扫描中…" : "扫描收藏夹"}
@@ -129,7 +129,7 @@ export function TaskList() {
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
                   aria-label="上一页"
-                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
+                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-[color,background-color,opacity] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -144,7 +144,7 @@ export function TaskList() {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                   aria-label="下一页"
-                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-all duration-150"
+                  className="p-2 rounded-full text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-stone-900/5 dark:hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-[color,background-color,opacity] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -159,13 +159,14 @@ export function TaskList() {
                 已选 <span className="font-semibold tabular-nums">{selectedIds.size}</span> 项
               </span>
               <select
+                aria-label="批量修改任务状态"
                 value=""
                 onChange={(e) => {
                   void handleBatchStatusChange(e.target.value);
                   e.target.value = "";
                 }}
                 disabled={batchUpdateTaskStatus.isPending}
-                className="h-8 pl-2.5 pr-7 text-[13px] bg-white dark:bg-white/[0.06] border border-stone-200 dark:border-stone-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium text-stone-600 dark:text-stone-300 cursor-pointer"
+                className="h-8 pl-2.5 pr-7 text-[13px] bg-white dark:bg-white/[0.06] border border-stone-200 dark:border-stone-700 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 focus-visible:border-accent disabled:opacity-50 disabled:cursor-not-allowed transition-[color,background-color,border-color,opacity] duration-150 font-medium text-stone-600 dark:text-stone-300 cursor-pointer"
               >
                 <option value="" disabled>
                   {batchUpdateTaskStatus.isPending ? "处理中…" : "批量修改状态"}
@@ -180,14 +181,14 @@ export function TaskList() {
               <button
                 onClick={handleBatchDelete}
                 disabled={batchDeleteTasks.isPending}
-                className="flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150"
+                className="flex items-center gap-1.5 h-8 px-3 text-[13px] font-medium text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-[color,background-color,border-color,opacity,transform] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/40"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 {batchDeleteTasks.isPending ? "删除中…" : "批量删除"}
               </button>
               <button
                 onClick={() => setSelectedIds(new Set())}
-                className="flex items-center gap-1 h-8 px-2.5 text-[13px] text-stone-400 dark:text-stone-500 hover:text-ink rounded-lg hover:bg-stone-900/5 dark:hover:bg-white/10 transition-all duration-150"
+                className="flex items-center gap-1 h-8 px-2.5 text-[13px] text-stone-400 dark:text-stone-500 hover:text-ink rounded-lg hover:bg-stone-900/5 dark:hover:bg-white/10 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
               >
                 <X className="w-3.5 h-3.5" />
                 取消选择
@@ -199,7 +200,7 @@ export function TaskList() {
 
       {/* 可滚动的表格区域 */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className="max-w-6xl mx-auto px-6 pb-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-6">
           <TaskTable
             tasks={data?.items || []}
             progressByTaskId={taskProgress}

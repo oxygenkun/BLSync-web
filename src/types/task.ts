@@ -82,6 +82,7 @@ export interface TaskVideoInfo {
   owner_name: string | null;
   owner_mid: number | null;
   duration: number | null;
+  videos_count: number;
   pubdate: number | null;
 }
 

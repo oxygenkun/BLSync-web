@@ -40,6 +40,49 @@ body {
   font-family: var(--font-family-sans);
 }
 
+/* 调整任务表列宽时保持拖拽反馈，并防止误选中文字。 */
+body.task-table-resizing,
+body.task-table-resizing * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+/* 截断标题悬停后由原元素向下展开，不改变表格行高。 */
+.copyable-title-group.copyable-title-expanded > .copyable-title-expand {
+  @apply absolute left-0 top-0 z-30 w-full whitespace-normal overflow-visible rounded-sm bg-surface shadow-lg;
+}
+
+/* 状态胶囊按可用宽度逐级精简，速度始终拥有最高展示优先级。 */
+.status-progress-pill {
+  container-type: inline-size;
+}
+
+@container (max-width: 11rem) {
+  .status-progress-percent {
+    display: none;
+  }
+}
+
+@container (max-width: 9rem) {
+  .status-progress-episode {
+    display: none;
+  }
+}
+
+@container (max-width: 7rem) {
+  .status-progress-label {
+    display: none;
+  }
+
+  .status-progress-content {
+    padding-inline: 0.5rem;
+  }
+
+  .status-progress-details {
+    margin-left: 0.375rem;
+  }
+}
+
 /* 背景氛围：两团极淡的色晕，增加层次感 */
 body::before {
   content: "";
@@ -65,7 +108,7 @@ body::before {
 
 /* 卡片：白底 + 细描边 + 极轻投影 */
 .card {
-  @apply bg-surface rounded-2xl border border-stone-200/80 dark:border-stone-800 transition-all duration-300;
+  @apply bg-surface rounded-2xl border border-stone-200/80 dark:border-stone-800 transition-[border-color,box-shadow] duration-300;
   box-shadow: 0 1px 2px rgb(28 25 23 / 0.04);
 }
 
@@ -144,6 +187,21 @@ body::before {
   }
 }
 
+@keyframes copy-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+
 /* 动画工具类 */
 .animate-fade-in {
   animation: fade-in 0.4s ease-out;
@@ -151,6 +209,16 @@ body::before {
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+.animate-copy-flash {
+  animation: copy-flash 0.65s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-copy-flash {
+    animation-duration: 0.01ms;
+  }
 }
 
 /* 骨架屏效果 */
