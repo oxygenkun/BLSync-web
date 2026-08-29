@@ -52,34 +52,30 @@ body.task-table-resizing * {
   @apply absolute left-0 top-0 z-30 w-full whitespace-normal overflow-visible rounded-sm bg-surface shadow-lg;
 }
 
-/* 状态胶囊按可用宽度逐级精简，速度始终拥有最高展示优先级。 */
+/* 状态胶囊：四段信息（状态/多p/速度/百分比）始终在同一行，按可用宽度逐级精简，速度始终拥有最高展示优先级。 */
 .status-progress-pill {
   container-type: inline-size;
 }
 
-@container (max-width: 11rem) {
+@container (max-width: 10.5rem) {
   .status-progress-percent {
     display: none;
   }
 }
 
-@container (max-width: 9rem) {
+@container (max-width: 8rem) {
   .status-progress-episode {
     display: none;
   }
 }
 
-@container (max-width: 7rem) {
+@container (max-width: 6rem) {
   .status-progress-label {
     display: none;
   }
 
   .status-progress-content {
     padding-inline: 0.5rem;
-  }
-
-  .status-progress-details {
-    margin-left: 0.375rem;
   }
 }
 

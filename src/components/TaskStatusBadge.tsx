@@ -83,20 +83,20 @@ export function TaskStatusBadge({
         className={`absolute inset-y-0 left-0 transition-[width] duration-300 ${config.fill}`}
         style={{ width: `${percent}%` }}
       />
-      <span className="status-progress-content relative z-10 flex w-full items-center px-2.5">
-        <span className="inline-flex min-w-0 shrink-0 items-center gap-1.5 text-xs font-medium">
+      <span className="status-progress-content relative z-10 flex w-full min-w-0 flex-nowrap items-center gap-1.5 px-2.5">
+        <span className="status-progress-label inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-medium">
           <StatusDot dot={config.dot} pulse={config.pulse} />
-          <span className="status-progress-label whitespace-nowrap">{config.label}</span>
-          {episodeProgress && (
-            <span className="status-progress-episode ml-0.5 shrink-0 text-[10px] font-normal tabular-nums text-stone-400 dark:text-stone-500">
-              {episodeProgress}
-            </span>
-          )}
+          {config.label}
         </span>
-        <span className="status-progress-details ml-2 flex min-w-0 flex-1 items-center justify-end text-[10px] text-stone-400 dark:text-stone-500">
+        {episodeProgress && (
+          <span className="status-progress-episode shrink-0 whitespace-nowrap text-[10px] font-normal tabular-nums text-stone-400 dark:text-stone-500">
+            {episodeProgress}
+          </span>
+        )}
+        <span className="status-progress-details flex min-w-0 flex-1 items-center justify-end text-[10px] text-stone-400 dark:text-stone-500">
           <span className="status-progress-speed min-w-0 truncate tabular-nums">{speed}</span>
         </span>
-        <span className="status-progress-percent ml-2 shrink-0 text-[10px] font-semibold tabular-nums text-ink dark:text-stone-100">
+        <span className="status-progress-percent shrink-0 whitespace-nowrap text-[10px] font-semibold tabular-nums text-ink dark:text-stone-100">
           {percent.toFixed(0)}%
         </span>
       </span>
