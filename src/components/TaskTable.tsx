@@ -1,6 +1,6 @@
 import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play } from "lucide-react";
-import { buildTaskFileUrl, openTaskFile } from "../api/files";
+import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play, RotateCcw  } from "lucide-react";
+import { buildTaskFileUrl, openTaskFile  } from "../api/files";
 import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
@@ -436,6 +436,19 @@ export function TaskTable({
                         <Play className="w-4 h-4" />
                       </button>
                     )}
+                    {onStatusChange &&
+                      (task.status === "completed" || task.status === "failed") && (
+                        <button
+                          type="button"
+                          title="重试（重置为准备中）"
+                          aria-label="重试"
+                          disabled={updatingTaskId === task.id}
+                          onClick={() => handleStatusChange(task.id, "ready")}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-stone-500 dark:text-stone-400 hover:text-ink hover:bg-white dark:hover:bg-white/[0.06] border border-transparent hover:border-stone-200 dark:hover:border-stone-700 disabled:opacity-50 transition-[color,background-color,border-color,opacity] duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                      )}
                     <TaskFileLinks task={task} />
                   </div>
                 </td>
