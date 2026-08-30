@@ -47,9 +47,6 @@ export interface ConfigValues {
   request_timeout: number;
   max_concurrent_tasks: number;
   task_timeout: number;
-  download_retry_limit: number;
-  download_stall_timeout: number;
-  download_url_refresh_retries: number;
   retry_failed_tasks: boolean;
   log_level: string;
   credential: Record<string, string | null>;
