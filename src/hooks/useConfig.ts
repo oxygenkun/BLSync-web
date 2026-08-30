@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getConfig, updateConfig } from "../api/config";
+import { createQrLogin, getConfig, getQrLoginStatus, updateConfig } from "../api/config";
 
 export function useConfig() {
   return useQuery({
@@ -17,6 +17,23 @@ export function useUpdateConfig() {
     onSuccess: (document) => {
       queryClient.setQueryData(["config"], document);
     },
+  });
+}
+
+export function useCreateQrLogin() {
+  return useMutation({ mutationFn: createQrLogin });
+}
+
+export function useQrLoginStatus(id: string | null) {
+  return useQuery({
+    queryKey: ["config-auth-qr", id],
+    queryFn: () => getQrLoginStatus(id!),
+    enabled: Boolean(id),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "confirmed" || status === "expired" ? false : 1500;
+    },
+    retry: false,
   });
 }
 

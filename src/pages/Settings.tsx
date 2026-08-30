@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertCircle,
   Check,
@@ -9,14 +9,17 @@ import {
   Gauge,
   KeyRound,
   LoaderCircle,
+  QrCode,
   RotateCcw,
   Save,
   ShieldCheck,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FavoriteListEditor } from "../components/FavoriteListEditor";
-import { useConfig, useUpdateConfig } from "../hooks/useConfig";
+import { getQrLoginImageUrl } from "../api/config";
+import { useConfig, useCreateQrLogin, useQrLoginStatus, useUpdateConfig } from "../hooks/useConfig";
 import type { ConfigDocument, ConfigFieldSchema, ConfigSectionSchema, ConfigValues } from "../types/config";
 
 const controlClass =
@@ -161,16 +164,39 @@ interface ConfigEditorProps {
   activeModule: string;
   onActiveModuleChange: (key: string) => void;
   onSaved: () => void;
+  onCredentialsUpdated: () => void;
 }
 
-function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }: ConfigEditorProps) {
+function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved, onCredentialsUpdated }: ConfigEditorProps) {
   const [values, setValues] = useState<ConfigValues>(() => structuredClone(document.values));
   const [dirtyPaths, setDirtyPaths] = useState<Set<string>>(() => new Set());
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
   const updateConfig = useUpdateConfig();
+  const createQrLogin = useCreateQrLogin();
+  const qrStatus = useQrLoginStatus(qrSessionId);
   const overridden = new Set(document.overridden_fields);
   const isDirty = dirtyPaths.size > 0;
   const activeSection = document.sections.find((section) => section.key === activeModule) ?? document.sections[0];
+
+  useEffect(() => {
+    if (qrStatus.data?.status !== "confirmed") return;
+    const closeTimer = window.setTimeout(() => {
+      setQrSessionId(null);
+      createQrLogin.reset();
+      onCredentialsUpdated();
+    }, 0);
+    return () => window.clearTimeout(closeTimer);
+  }, [qrStatus.data?.status, createQrLogin, onCredentialsUpdated]);
+
+  const startQrLogin = async () => {
+    try {
+      const session = await createQrLogin.mutateAsync();
+      setQrSessionId(session.id);
+    } catch {
+      // Error is rendered next to the action.
+    }
+  };
 
   const handleChange = (path: string, value: unknown) => {
     setValues((current) => setValueAtPath(current, path, value));
@@ -253,8 +279,20 @@ function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }:
                 <ModuleIcon section={activeSection} />
               </span>
               <h2 className="text-base font-bold tracking-tight text-ink">{activeSection.title}</h2>
+              {activeSection.key === "credential" ? (
+                <button
+                  type="button"
+                  onClick={() => void startQrLogin()}
+                  disabled={createQrLogin.isPending}
+                  className="ml-auto flex items-center gap-2 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-white transition hover:opacity-85 disabled:opacity-50"
+                >
+                  {createQrLogin.isPending ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
+                  扫码获取
+                </button>
+              ) : null}
             </div>
             <p className="mt-2 max-w-2xl text-xs leading-5 text-stone-400">{activeSection.description}</p>
+            {activeSection.key === "credential" && createQrLogin.error ? <p className="mt-2 text-xs text-rose-500">{createQrLogin.error.message}</p> : null}
           </header>
           <div className="divide-y divide-stone-100 px-5 sm:px-6 dark:divide-stone-800">
             {activeSection.fields.map((field) => {
@@ -302,6 +340,26 @@ function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }:
         ) : null}
 
       </div>
+
+      {qrSessionId ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="qr-login-title">
+          <div className="w-full max-w-sm rounded-3xl bg-surface p-6 text-center shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h2 id="qr-login-title" className="text-base font-bold text-ink">哔哩哔哩扫码登录</h2>
+              <button type="button" onClick={() => setQrSessionId(null)} aria-label="关闭" className="rounded-full p-2 text-stone-400 transition hover:bg-stone-100 hover:text-ink dark:hover:bg-white/[0.06]"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="mx-auto mt-5 w-fit rounded-2xl bg-white p-3 shadow-inner">
+              <img src={getQrLoginImageUrl(qrSessionId)} alt="哔哩哔哩登录二维码" className="h-52 w-52" />
+            </div>
+            <p className="mt-4 text-sm font-medium text-ink">
+              {qrStatus.data?.status === "scanned" ? "已扫码，请在 App 内确认" : qrStatus.data?.status === "expired" ? "二维码已过期" : "请使用哔哩哔哩 App 扫码"}
+            </p>
+            <p className="mt-1 text-xs text-stone-400">确认后窗口会自动关闭并更新账号凭证</p>
+            {qrStatus.error ? <p className="mt-3 text-xs text-rose-500">{qrStatus.error.message}</p> : null}
+            {qrStatus.data?.status === "expired" ? <button type="button" onClick={() => { setQrSessionId(null); void startQrLogin(); }} className="mt-4 rounded-full bg-ink px-4 py-2 text-sm text-paper">重新获取</button> : null}
+          </div>
+        </div>
+      ) : null}
       </div>
     </>
   );
@@ -354,6 +412,7 @@ export function Settings() {
         activeModule={activeModule}
         onActiveModuleChange={setActiveModule}
         onSaved={() => setSaved(true)}
+        onCredentialsUpdated={() => { setSaved(true); void refetch(); }}
       />
     </div>
   );

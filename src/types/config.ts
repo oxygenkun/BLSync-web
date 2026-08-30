@@ -69,3 +69,15 @@ export interface ConfigDocument {
   };
 }
 
+export type QrLoginStatus = "pending" | "scanned" | "confirmed" | "expired";
+
+export interface QrLoginCreated {
+  id: string;
+  expires_in: number;
+}
+
+export interface QrLoginResult {
+  status: QrLoginStatus;
+  config: ConfigDocument | null;
+}
+
