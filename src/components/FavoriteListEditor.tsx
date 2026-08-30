@@ -20,18 +20,16 @@ function uniqueTaskName(items: Record<string, FavoriteListValue>) {
   return `task${index}`;
 }
 
+function fieldHint(fields: ConfigFieldSchema[], fieldKey: string) {
+  const description = fields.find((field) => field.key === fieldKey)?.description;
+  return description ? <span className="block text-[11px] leading-4 text-stone-400">{description}</span> : null;
+}
+
 export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEditorProps) {
   const entries = Object.entries(value);
   const [activeTaskName, setActiveTaskName] = useState(() => entries[0]?.[0] ?? "");
   const selectedTaskName = value[activeTaskName] ? activeTaskName : (entries[0]?.[0] ?? "");
   const selectedItem = value[selectedTaskName];
-  const descriptionFor = (key: string) => fields.find((field) => field.key === key)?.description;
-
-  const FieldHint = ({ fieldKey }: { fieldKey: string }) => {
-    const description = descriptionFor(fieldKey);
-    return description ? <span className="block text-[11px] leading-4 text-stone-400">{description}</span> : null;
-  };
-
   const updateItem = (item: FavoriteListValue) => {
     onChange({ ...value, [selectedTaskName]: item });
   };
@@ -138,7 +136,7 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-xs font-medium text-stone-500">任务名</span>
-            <FieldHint fieldKey="name" />
+            {fieldHint(fields, "name")}
             <input
               key={selectedTaskName}
               className={inputClass}
@@ -149,7 +147,7 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
           </label>
           <label className="space-y-1.5">
             <span className="text-xs font-medium text-stone-500">收藏夹 ID</span>
-            <FieldHint fieldKey="fid" />
+            {fieldHint(fields, "fid")}
             <input
               className={inputClass}
               inputMode="numeric"
@@ -159,7 +157,7 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
           </label>
           <label className="space-y-1.5 sm:col-span-2">
             <span className="text-xs font-medium text-stone-500">下载路径</span>
-            <FieldHint fieldKey="path" />
+            {fieldHint(fields, "path")}
             <input
               className={inputClass}
               value={selectedItem.path}
@@ -168,7 +166,7 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
           </label>
           <label className="space-y-1.5 sm:col-span-2">
             <span className="text-xs font-medium text-stone-500">文件名模板</span>
-            <FieldHint fieldKey="name_template" />
+            {fieldHint(fields, "name_template")}
             <input
               className={`${inputClass} font-mono`}
               placeholder={defaultNameTemplate}
@@ -178,7 +176,7 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
           </label>
           <label className="space-y-1.5 sm:col-span-2">
             <span className="text-xs font-medium text-stone-500">文件名多P模板</span>
-            <FieldHint fieldKey="name_group" />
+            {fieldHint(fields, "name_group")}
             <input
               className={`${inputClass} font-mono`}
               placeholder={defaultNameGroupTemplate}
