@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { FolderHeart, Plus, Trash2, X } from "lucide-react";
-import type { FavoriteListValue, PostprocessAction } from "../types/config";
+import type { ConfigFieldSchema, FavoriteListValue, PostprocessAction } from "../types/config";
 
 interface FavoriteListEditorProps {
   value: Record<string, FavoriteListValue>;
+  fields: ConfigFieldSchema[];
   onChange: (value: Record<string, FavoriteListValue>) => void;
 }
 
 const inputClass =
   "w-full rounded-xl border border-stone-200 bg-white/70 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 dark:border-stone-700 dark:bg-white/[0.04]";
+
+const defaultNameTemplate = "[{username}]{name}({bvid})";
+const defaultNameGroupTemplate = "[{username}]{title}({bvid})/P{id:0>3}-{name}";
 
 function uniqueTaskName(items: Record<string, FavoriteListValue>) {
   let index = Object.keys(items).length + 1;
@@ -16,11 +20,17 @@ function uniqueTaskName(items: Record<string, FavoriteListValue>) {
   return `task${index}`;
 }
 
-export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps) {
+export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEditorProps) {
   const entries = Object.entries(value);
   const [activeTaskName, setActiveTaskName] = useState(() => entries[0]?.[0] ?? "");
   const selectedTaskName = value[activeTaskName] ? activeTaskName : (entries[0]?.[0] ?? "");
   const selectedItem = value[selectedTaskName];
+  const descriptionFor = (key: string) => fields.find((field) => field.key === key)?.description;
+
+  const FieldHint = ({ fieldKey }: { fieldKey: string }) => {
+    const description = descriptionFor(fieldKey);
+    return description ? <span className="block text-[11px] leading-4 text-stone-400">{description}</span> : null;
+  };
 
   const updateItem = (item: FavoriteListValue) => {
     onChange({ ...value, [selectedTaskName]: item });
@@ -43,8 +53,8 @@ export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps)
       [taskName]: {
         fid: "",
         path: "downloads/",
-        name: null,
-        name_group: null,
+        name: defaultNameTemplate,
+        name_group: defaultNameGroupTemplate,
         postprocess: [],
       },
     });
@@ -128,6 +138,7 @@ export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps)
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
             <span className="text-xs font-medium text-stone-500">任务名</span>
+            <FieldHint fieldKey="name" />
             <input
               key={selectedTaskName}
               className={inputClass}
@@ -138,6 +149,7 @@ export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps)
           </label>
           <label className="space-y-1.5">
             <span className="text-xs font-medium text-stone-500">收藏夹 ID</span>
+            <FieldHint fieldKey="fid" />
             <input
               className={inputClass}
               inputMode="numeric"
@@ -147,27 +159,31 @@ export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps)
           </label>
           <label className="space-y-1.5 sm:col-span-2">
             <span className="text-xs font-medium text-stone-500">下载路径</span>
+            <FieldHint fieldKey="path" />
             <input
               className={inputClass}
               value={selectedItem.path}
               onChange={(event) => updateItem({ ...selectedItem, path: event.target.value })}
             />
           </label>
-          <label className="space-y-1.5">
+          <label className="space-y-1.5 sm:col-span-2">
             <span className="text-xs font-medium text-stone-500">文件名模板</span>
+            <FieldHint fieldKey="name_template" />
             <input
               className={`${inputClass} font-mono`}
-              placeholder="{auto}({bvid})"
-              value={selectedItem.name ?? ""}
-              onChange={(event) => updateItem({ ...selectedItem, name: event.target.value || null })}
+              placeholder={defaultNameTemplate}
+              value={selectedItem.name}
+              onChange={(event) => updateItem({ ...selectedItem, name: event.target.value })}
             />
           </label>
-          <label className="space-y-1.5">
-            <span className="text-xs font-medium text-stone-500">分组名模板</span>
+          <label className="space-y-1.5 sm:col-span-2">
+            <span className="text-xs font-medium text-stone-500">文件名多P模板</span>
+            <FieldHint fieldKey="name_group" />
             <input
               className={`${inputClass} font-mono`}
-              value={selectedItem.name_group ?? ""}
-              onChange={(event) => updateItem({ ...selectedItem, name_group: event.target.value || null })}
+              placeholder={defaultNameGroupTemplate}
+              value={selectedItem.name_group}
+              onChange={(event) => updateItem({ ...selectedItem, name_group: event.target.value })}
             />
           </label>
         </div>
@@ -183,6 +199,7 @@ export function FavoriteListEditor({ value, onChange }: FavoriteListEditorProps)
               <Plus className="h-3.5 w-3.5" /> 添加
             </button>
           </div>
+          <p className="mb-2.5 text-[11px] leading-4 text-stone-400">可在下载完成后移动到其他收藏夹、从当前收藏夹移除，或保存到目标收藏夹。</p>
           {actions.length === 0 ? (
             <p className="rounded-xl bg-stone-50 px-3 py-2.5 text-xs text-stone-400 dark:bg-white/[0.025]">下载完成后不执行额外操作。</p>
           ) : (

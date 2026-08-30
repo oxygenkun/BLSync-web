@@ -37,8 +37,8 @@ export interface PostprocessAction {
 export interface FavoriteListValue {
   fid: string;
   path: string;
-  name: string | null;
-  name_group: string | null;
+  name: string;
+  name_group: string;
   postprocess: PostprocessAction[] | null;
 }
 

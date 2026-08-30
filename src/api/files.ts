@@ -27,6 +27,10 @@ export async function openTaskFile(downloadUrl: string): Promise<void> {
   await fileClient.post(`${downloadUrl}/open`);
 }
 
+export function isDesktopApp(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+}
+
 function getFileBaseUrl(): string {
   if (!API_BASE_URL || API_BASE_URL === "/api") {
     return "";

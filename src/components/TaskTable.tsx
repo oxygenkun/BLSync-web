@@ -1,6 +1,6 @@
 import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play, RotateCcw  } from "lucide-react";
-import { buildTaskFileUrl, openTaskFile  } from "../api/files";
+import { buildTaskFileUrl, isDesktopApp, openTaskFile  } from "../api/files";
 import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
@@ -645,6 +645,7 @@ function TaskFileLinks({ task }: { task: Task }) {
             target="_blank"
             rel="noreferrer"
             onClick={(event) => {
+              if (!isDesktopApp()) return;
               event.preventDefault();
               void openWithSystemPlayer(file.download_url);
             }}
@@ -664,6 +665,7 @@ function TaskFileLinks({ task }: { task: Task }) {
       target="_blank"
       rel="noreferrer"
       onClick={(event) => {
+        if (!isDesktopApp()) return;
         event.preventDefault();
         void openWithSystemPlayer(files[0].download_url);
       }}

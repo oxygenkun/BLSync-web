@@ -87,6 +87,7 @@ function FieldControl({ field, values, configuredSecrets, dirtyPaths, disabled, 
     return (
       <FavoriteListEditor
         value={values.favorite_list}
+        fields={field.item_fields ?? []}
         onChange={(next) => onChange(field.key, next)}
       />
     );
