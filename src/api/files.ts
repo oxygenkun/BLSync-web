@@ -23,6 +23,10 @@ export function buildTaskFileUrl(downloadUrl: string): string {
   return `${getFileBaseUrl()}${downloadUrl}`;
 }
 
+export async function openTaskFile(downloadUrl: string): Promise<void> {
+  await fileClient.post(`${downloadUrl}/open`);
+}
+
 function getFileBaseUrl(): string {
   if (!API_BASE_URL || API_BASE_URL === "/api") {
     return "";

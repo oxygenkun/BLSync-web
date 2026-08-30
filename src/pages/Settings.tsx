@@ -203,9 +203,23 @@ function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }:
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-7">
+    <>
+      <div className={`settings-save-bar z-30 flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-xl transition ${isDirty ? "border-accent/30 bg-surface/90 shadow-accent/10" : "pointer-events-none translate-y-2 border-transparent bg-surface/0 opacity-0 shadow-none"}`}>
+        <p className="text-xs text-stone-400"><span className="font-semibold text-ink">{dirtyPaths.size}</span> 处修改尚未保存</p>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={reset} className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-ink dark:hover:bg-white/[0.06]">
+            <RotateCcw className="h-3.5 w-3.5" /> 放弃
+          </button>
+          <button type="button" onClick={() => void save()} disabled={updateConfig.isPending} className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:opacity-85 disabled:opacity-50">
+            {updateConfig.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {updateConfig.isPending ? "写入中…" : "保存并应用"}
+          </button>
+        </div>
+      </div>
+
+      <div className="settings-editor grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-7">
       <aside className="min-w-0">
-        <nav aria-label="配置模块" className="flex gap-2 overflow-x-auto pb-1 lg:sticky lg:top-24 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
+        <nav aria-label="配置模块" className="settings-module-nav flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
           {document.sections.map((section) => {
             const isActive = section.key === activeSection.key;
             return (
@@ -230,7 +244,7 @@ function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }:
         </nav>
       </aside>
 
-      <div className="min-w-0 space-y-5">
+      <div className="settings-module-scroll custom-scrollbar min-h-0 min-w-0 space-y-5">
         <section key={activeSection.key} className="card animate-fade-in overflow-hidden">
           <header className="border-b border-stone-100 px-5 py-5 sm:px-6 dark:border-stone-800">
             <div className="flex items-center gap-2.5">
@@ -286,20 +300,9 @@ function ConfigEditor({ document, activeModule, onActiveModuleChange, onSaved }:
           </div>
         ) : null}
 
-        <div className={`sticky bottom-4 z-30 flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur-xl transition ${isDirty ? "border-accent/30 bg-surface/90 shadow-accent/10" : "pointer-events-none translate-y-2 border-transparent bg-surface/0 opacity-0 shadow-none"}`}>
-          <p className="text-xs text-stone-400"><span className="font-semibold text-ink">{dirtyPaths.size}</span> 处修改尚未保存</p>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={reset} className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-100 hover:text-ink dark:hover:bg-white/[0.06]">
-              <RotateCcw className="h-3.5 w-3.5" /> 放弃
-            </button>
-            <button type="button" onClick={() => void save()} disabled={updateConfig.isPending} className="flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-paper transition hover:opacity-85 disabled:opacity-50">
-              {updateConfig.isPending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              {updateConfig.isPending ? "写入中…" : "保存并应用"}
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -324,8 +327,8 @@ export function Settings() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="settings-page relative mx-auto flex max-w-6xl flex-col px-4 pb-16 pt-8 sm:px-6">
+      <div className="settings-page-header mb-8 flex shrink-0 items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink">配置中心</h1>
         </div>

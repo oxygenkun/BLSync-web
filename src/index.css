@@ -169,6 +169,47 @@ body::before {
   @apply bg-stone-600/80;
 }
 
+/* 配置页在常规窗口高度下固定于视口，滚动仅发生在当前配置模块中。
+   矮窗口退回自然文档流，确保导航、标题和操作区都仍可访问。 */
+@media (min-height: 42rem) {
+  .settings-page {
+    height: calc(100dvh - 4rem);
+    overflow: hidden;
+    padding-bottom: 2rem;
+  }
+
+  .settings-module-scroll {
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    padding-bottom: 1rem;
+  }
+}
+
+.settings-save-bar {
+  position: absolute;
+  top: 2rem;
+  right: 1rem;
+}
+
+@media (min-width: 40rem) {
+  .settings-save-bar {
+    right: 1.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  .settings-save-bar {
+    left: calc(1.5rem + 14rem + 1.75rem);
+  }
+}
+
+@media (max-height: 41.999rem) and (min-width: 64rem) {
+  .settings-module-nav {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
 /* 动画定义 */
 @keyframes fade-in {
   from {

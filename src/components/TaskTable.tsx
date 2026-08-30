@@ -1,6 +1,6 @@
 import { type PointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ExternalLink, FileVideo, Inbox, LoaderCircle, Pause, Play } from "lucide-react";
-import { buildTaskFileUrl } from "../api/files";
+import { buildTaskFileUrl, openTaskFile } from "../api/files";
 import type { Task, TaskFile, TaskProgressEvent } from "../types/task";
 import { TaskStatusBadge } from "./TaskStatusBadge";
 
@@ -37,17 +37,26 @@ function calculateEffectiveColumnWidths(
 ): Record<ColumnId, number> {
   const selectionWidth = selectable ? SELECTION_COLUMN_WIDTH : 0;
   const baseWidth = COLUMN_IDS.reduce((total, id) => total + widths[id], selectionWidth);
-  const extraWidth = Math.max(0, availableWidth - baseWidth);
+  const extraWidth = Math.max(0, Math.floor(availableWidth - baseWidth));
   const totalGrowWeight = COLUMN_IDS.reduce(
     (total, id) => total + COLUMN_DEFINITIONS[id].growWeight,
     0,
   );
+  let allocatedExtraWidth = 0;
 
   return Object.fromEntries(
-    COLUMN_IDS.map((id) => {
-      const growShare = totalGrowWeight > 0
-        ? extraWidth * COLUMN_DEFINITIONS[id].growWeight / totalGrowWeight
-        : 0;
+    COLUMN_IDS.map((id, index) => {
+      const growWeight = COLUMN_DEFINITIONS[id].growWeight;
+      const isLastGrowingColumn = growWeight > 0
+        && !COLUMN_IDS.slice(index + 1).some(
+          (nextId) => COLUMN_DEFINITIONS[nextId].growWeight > 0,
+        );
+      const growShare = totalGrowWeight === 0 || growWeight === 0
+        ? 0
+        : isLastGrowingColumn
+          ? extraWidth - allocatedExtraWidth
+          : Math.floor(extraWidth * growWeight / totalGrowWeight);
+      allocatedExtraWidth += growShare;
       return [id, widths[id] + growShare];
     }),
   ) as Record<ColumnId, number>;
@@ -248,6 +257,11 @@ export function TaskTable({
   };
 
   const effectiveColumnWidths = calculateEffectiveColumnWidths(columnWidths, availableWidth, selectable);
+  const minimumTableWidth = COLUMN_IDS.reduce(
+    (total, id) => total + columnWidths[id],
+    selectable ? SELECTION_COLUMN_WIDTH : 0,
+  );
+  const requiresHorizontalScroll = availableWidth > 0 && minimumTableWidth > availableWidth;
 
   const tableWidth = COLUMN_IDS.reduce(
     (total, id) => total + effectiveColumnWidths[id],
@@ -307,7 +321,7 @@ export function TaskTable({
     <div className="card relative overflow-hidden" aria-busy={isRefreshing}>
       <div
         ref={tableViewportRef}
-        className={`custom-scrollbar overflow-x-auto transition-opacity duration-150 ${isRefreshing ? "pointer-events-none opacity-60" : "opacity-100"}`}
+        className={`custom-scrollbar ${requiresHorizontalScroll ? "overflow-x-auto" : "overflow-x-hidden"} transition-opacity duration-150 ${isRefreshing ? "pointer-events-none opacity-60" : "opacity-100"}`}
       >
         <table className="table-fixed" style={{ width: `${tableWidth}px` }}>
           <colgroup>
@@ -588,6 +602,14 @@ function CopyableText({
 function TaskFileLinks({ task }: { task: Task }) {
   const files = task.files ?? [];
 
+  const openWithSystemPlayer = async (downloadUrl: string) => {
+    try {
+      await openTaskFile(downloadUrl);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "无法调用系统播放器");
+    }
+  };
+
   if (task.status !== "completed") {
     return null;
   }
@@ -609,6 +631,10 @@ function TaskFileLinks({ task }: { task: Task }) {
             href={buildTaskFileUrl(file.download_url)}
             target="_blank"
             rel="noreferrer"
+            onClick={(event) => {
+              event.preventDefault();
+              void openWithSystemPlayer(file.download_url);
+            }}
             title={`${file.name} (${formatBytes(file.size)})`}
             className="inline-flex h-7 min-w-0 items-center justify-center overflow-hidden rounded-md border border-emerald-200/80 bg-emerald-50 px-1 text-xs font-semibold tabular-nums text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
           >
@@ -624,6 +650,10 @@ function TaskFileLinks({ task }: { task: Task }) {
       href={buildTaskFileUrl(files[0].download_url)}
       target="_blank"
       rel="noreferrer"
+      onClick={(event) => {
+        event.preventDefault();
+        void openWithSystemPlayer(files[0].download_url);
+      }}
       title={`${files[0].name} (${formatBytes(files[0].size)})`}
       className="inline-flex h-7 shrink-0 items-center gap-1 rounded-lg border border-emerald-200/80 bg-emerald-50 px-2 text-xs font-medium text-emerald-700 transition-colors hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
     >
