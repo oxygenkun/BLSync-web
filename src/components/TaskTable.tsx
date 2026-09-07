@@ -709,14 +709,29 @@ function TaskProgressCell({
       : `P–/${episodeCount}`
     : null;
   const speed = formatSpeed(progress?.speed_bytes_per_second ?? null);
+  const errorMessage =
+    task.status === "failed"
+      ? (task.error_message ??
+        (progress?.event === "failed" ? progress.message : null))
+      : null;
 
   return (
-    <TaskStatusBadge
-      status={task.status}
-      progress={percent}
-      episodeProgress={episodeProgress}
-      speed={speed}
-    />
+    <div className="flex min-w-0 flex-col items-start gap-1">
+      <TaskStatusBadge
+        status={task.status}
+        progress={percent}
+        episodeProgress={episodeProgress}
+        speed={speed}
+      />
+      {errorMessage && (
+        <p
+          title={errorMessage}
+          className="line-clamp-2 break-words text-[11px] leading-snug text-rose-600 dark:text-rose-400"
+        >
+          {errorMessage}
+        </p>
+      )}
+    </div>
   );
 }
 
