@@ -39,6 +39,10 @@ export interface FavoriteListValue {
   path: string;
   name: string;
   name_group: string;
+  save_cover: boolean | null;
+  save_subtitle: boolean | null;
+  save_danmaku: boolean | null;
+  save_metadata: boolean | null;
   postprocess: PostprocessAction[] | null;
 }
 
@@ -48,6 +52,10 @@ export interface ConfigValues {
   max_concurrent_tasks: number;
   task_timeout: number;
   retry_failed_tasks: boolean;
+  save_cover: boolean;
+  save_subtitle: boolean;
+  save_danmaku: boolean;
+  save_metadata: boolean;
   log_level: string;
   credential: Record<string, string | null>;
   favorite_list: Record<string, FavoriteListValue>;
@@ -77,4 +85,3 @@ export interface QrLoginResult {
   status: QrLoginStatus;
   config: ConfigDocument | null;
 }
-

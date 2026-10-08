@@ -4,6 +4,7 @@ import { LoaderCircle, AlertTriangle, Download, Search, Link2 } from "lucide-rea
 import { useTaskStore } from "../store/taskStore";
 import { useVideoInfo } from "../hooks/useVideoInfo";
 import { useCreateTask } from "../hooks/useTasks";
+import { useConfig } from "../hooks/useConfig";
 import { extractBvid, isValidBvid } from "../lib/bvid-parser";
 import { URLInput } from "../components/URLInput";
 import { VideoCard } from "../components/VideoCard";
@@ -16,12 +17,28 @@ const videoCodecLabels: Record<VideoDownloadCodec, string> = {
   av1: "AV1",
 };
 
+const resourceOptions = [
+  { key: "save_cover", label: "封面", description: "保存 poster 图片", defaultValue: true },
+  { key: "save_subtitle", label: "字幕", description: "保存视频提供的字幕", defaultValue: false },
+  { key: "save_danmaku", label: "弹幕", description: "保存 ASS 弹幕文件", defaultValue: false },
+  { key: "save_metadata", label: "元数据", description: "保存 NFO 视频信息", defaultValue: true },
+] as const;
+
+type ResourceKey = typeof resourceOptions[number]["key"];
+
 export function AddTask() {
   const navigate = useNavigate();
   const { url, error, setUrl, setVideoInfo, selectedEpisodes, toggleEpisode, selectAllEpisodes, deselectAllEpisodes, setError, reset } = useTaskStore();
   const [requestedBvid, setRequestedBvid] = useState("");
   const [videoQuality, setVideoQuality] = useState<VideoQuality>(127);
   const [videoDownloadCodec, setVideoDownloadCodec] = useState<VideoDownloadCodec>("avc");
+  const [resourceOverrides, setResourceOverrides] = useState<Partial<Record<ResourceKey, boolean>>>({});
+  const config = useConfig();
+  const resourceDefault = (key: ResourceKey) => {
+    const values = config.data?.values;
+    const favoriteDefault = values?.favorite_list["-1"]?.[key];
+    return favoriteDefault ?? values?.[key];
+  };
 
   const inputBvid = extractBvid(url);
   const { data: videoInfo, isFetching, isError, refetch } = useVideoInfo(requestedBvid);
@@ -86,6 +103,7 @@ export function AddTask() {
         selected_episodes: selectedEpisodes.length > 0 ? selectedEpisodes : undefined,
         video_quality: selectedVideoQuality,
         video_download_codec: selectedVideoCodec,
+        ...resourceOverrides,
       });
 
       reset();
@@ -199,6 +217,44 @@ export function AddTask() {
                 : "所选分集没有共同可下载的画质与编码，请分别选择分集下载，或检查账号权限后重新解析。"}
             </p>
           </fieldset>
+
+          <fieldset className="card p-5" disabled={createTaskMutation.isPending || config.isLoading || !!config.error}>
+            <legend className="sr-only">保存附加文件</legend>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold text-ink">保存附加文件</h2>
+              <button type="button" onClick={() => setResourceOverrides({})} className="text-xs text-accent-deep hover:underline disabled:opacity-50">
+                恢复默认设置
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {resourceOptions.map((option) => (
+                <label key={option.key} className="flex cursor-pointer items-center gap-3 rounded-xl border border-stone-200 p-3 dark:border-stone-700">
+                  <input
+                    type="checkbox"
+                    checked={resourceOverrides[option.key] ?? resourceDefault(option.key) ?? option.defaultValue}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setResourceOverrides((current) => ({ ...current, [option.key]: checked }));
+                    }}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-ink">{option.label}</span>
+                    <span className="block text-xs text-stone-400">{option.description}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-stone-400">
+              {config.isLoading ? "正在读取默认设置…" : "默认使用直接下载及全局设置；调整后仅用于本次任务及其重试。"}
+            </p>
+          </fieldset>
+          {config.error ? (
+            <p role="alert" className="text-sm text-rose-500">
+              无法读取全局设置，未调整的选项仍将跟随全局设置。
+              <button type="button" onClick={() => void config.refetch()} className="ml-2 underline">重新读取</button>
+            </p>
+          ) : null}
 
           {/* 提交按钮 */}
           <button

@@ -45,6 +45,10 @@ export interface CreateTaskRequest {
   selected_episodes?: number[];
   video_quality?: VideoQuality;
   video_download_codec?: VideoDownloadCodec;
+  save_cover?: boolean;
+  save_subtitle?: boolean;
+  save_danmaku?: boolean;
+  save_metadata?: boolean;
 }
 
 // 创建任务响应

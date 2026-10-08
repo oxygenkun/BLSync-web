@@ -89,6 +89,7 @@ function FieldControl({ field, values, configuredSecrets, dirtyPaths, disabled, 
   if (field.type === "favorite-list") {
     return (
       <FavoriteListEditor
+        saveDefaults={{ save_cover: values.save_cover, save_subtitle: values.save_subtitle, save_danmaku: values.save_danmaku, save_metadata: values.save_metadata }}
         value={values.favorite_list}
         fields={field.item_fields ?? []}
         onChange={(next) => onChange(field.key, next)}
@@ -101,6 +102,7 @@ function FieldControl({ field, values, configuredSecrets, dirtyPaths, disabled, 
       <button
         type="button"
         role="switch"
+        aria-label={field.label}
         aria-checked={Boolean(value)}
         disabled={disabled}
         onClick={() => onChange(field.key, !value)}

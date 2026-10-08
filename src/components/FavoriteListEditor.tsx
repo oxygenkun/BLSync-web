@@ -5,11 +5,19 @@ import type { ConfigFieldSchema, FavoriteListValue, PostprocessAction } from "..
 interface FavoriteListEditorProps {
   value: Record<string, FavoriteListValue>;
   fields: ConfigFieldSchema[];
+  saveDefaults: { save_cover: boolean; save_subtitle: boolean; save_danmaku: boolean; save_metadata: boolean };
   onChange: (value: Record<string, FavoriteListValue>) => void;
 }
 
 const inputClass =
   "w-full rounded-xl border border-stone-200 bg-white/70 px-3 py-2.5 text-sm text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 dark:border-stone-700 dark:bg-white/[0.04]";
+
+const saveOptionLabels = {
+  save_cover: "保存封面",
+  save_subtitle: "保存字幕",
+  save_danmaku: "保存弹幕",
+  save_metadata: "保存元数据（NFO）",
+} as const;
 
 const defaultNameTemplate = "[{username}]{name}({bvid})";
 const defaultNameGroupTemplate = "[{username}]{title}({bvid})/P{id:0>3}-{name}";
@@ -25,7 +33,7 @@ function fieldHint(fields: ConfigFieldSchema[], fieldKey: string) {
   return description ? <span className="block text-[11px] leading-4 text-stone-400">{description}</span> : null;
 }
 
-export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEditorProps) {
+export function FavoriteListEditor({ value, fields, saveDefaults, onChange }: FavoriteListEditorProps) {
   const entries = Object.entries(value);
   const [activeTaskName, setActiveTaskName] = useState(() => entries[0]?.[0] ?? "");
   const selectedTaskName = value[activeTaskName] ? activeTaskName : (entries[0]?.[0] ?? "");
@@ -53,6 +61,10 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
         path: "downloads/",
         name: defaultNameTemplate,
         name_group: defaultNameGroupTemplate,
+        save_cover: null,
+        save_subtitle: null,
+        save_danmaku: null,
+        save_metadata: null,
         postprocess: [],
       },
     });
@@ -245,6 +257,29 @@ export function FavoriteListEditor({ value, fields, onChange }: FavoriteListEdit
             </div>
           )}
         </div>
+
+        <fieldset className="mt-5 border-t border-dashed border-stone-200 pt-4 dark:border-stone-700">
+          <legend className="sr-only">默认保存设置</legend>
+          <h4 className="mb-2 text-xs font-semibold text-stone-500">默认保存设置</h4>
+          <p className="mb-3 text-[11px] leading-4 text-stone-400">用于此收藏夹的后续下载；手动下载的单次选择优先。</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(["save_cover", "save_subtitle", "save_danmaku", "save_metadata"] as const).map((key) => (
+              <label key={key} className="space-y-1.5">
+                <span className="text-xs font-medium text-stone-500">{saveOptionLabels[key]}</span>
+                {fieldHint(fields, key)}
+                <select
+                  className={inputClass}
+                  value={selectedItem[key] == null ? "inherit" : String(selectedItem[key])}
+                  onChange={(event) => updateItem({ ...selectedItem, [key]: event.target.value === "inherit" ? null : event.target.value === "true" })}
+                >
+                  <option value="inherit">跟随全局设置（{saveDefaults[key] ? "开启" : "关闭"}）</option>
+                  <option value="true">开启</option>
+                  <option value="false">关闭</option>
+                </select>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
     </div>
   );
