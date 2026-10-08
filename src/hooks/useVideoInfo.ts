@@ -6,7 +6,8 @@ export function useVideoInfo(bvid: string) {
     queryKey: ["video", bvid],
     queryFn: () => getVideoInfo(bvid),
     enabled: !!bvid,
-    staleTime: 5 * 60 * 1000, // 5分钟内数据视为新鲜
+    staleTime: 0,
+    refetchOnWindowFocus: false,
     retry: 1,
   });
 }

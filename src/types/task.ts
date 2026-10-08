@@ -36,10 +36,15 @@ export interface TaskQuery {
 }
 
 // 创建任务请求
+export type VideoQuality = 127 | 126 | 125 | 120 | 116 | 112 | 100 | 80 | 74 | 64 | 32 | 16;
+export type VideoDownloadCodec = "avc" | "hevc" | "av1";
+
 export interface CreateTaskRequest {
   bid: string;
   favid?: string;
   selected_episodes?: number[];
+  video_quality?: VideoQuality;
+  video_download_codec?: VideoDownloadCodec;
 }
 
 // 创建任务响应
